@@ -8,6 +8,8 @@ library(readxl)
 library(shinycssloaders)
 
 source("functions/didson_wrangle.R")
+source("functions/tower_wrangle.R")
+
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -45,7 +47,6 @@ shinyUI(fluidPage(
                             ),
                    tabPanel("Hourly",
                             withSpinner(plotOutput("didson_hourlyplot1"))
-                            
                             ),
                  ),# end of didson tabset panel
                  
@@ -53,7 +54,32 @@ shinyUI(fluidPage(
              ) #end of didson sidebar layout
              
              ), #end of didson tabpanel
-    tabPanel("Tower Count Data",), #end of tower tabpanel
+    tabPanel("Tower Count Data",
+             sidebarLayout(
+               sidebarPanel(
+                 sliderInput("bins",
+                             "Number of bins:",
+                             min = 1,
+                             max = 50,
+                             value = 30)
+               ),
+               
+               # Show a plot of the generated distribution
+               mainPanel(
+                 tabsetPanel(
+                   tabPanel("Daily Data",
+                            withSpinner(plotOutput("tower_dailyplot1")) 
+                   ),
+                   tabPanel("Hourly",
+                            withSpinner(plotOutput("tower_hourlyplot1"))
+                   ),
+                 ),# end of tower tabset panel
+                 
+               ) #end of tower mainpanel
+             ) #end of tower sidebar layout
+             
+    ), #end of tower tabpanel
+            
     tabPanel("Comparisons",), #end of comparisons tabpanel
   ), #end of navbar page
 

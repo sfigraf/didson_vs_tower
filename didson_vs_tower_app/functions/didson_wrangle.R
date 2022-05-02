@@ -26,7 +26,7 @@ didson_function <- function(didson_data) {
   
   ## Hourly
   
-  didson_hourly <- didson_2021 %>%
+  didson_hourly <- didson_data %>%
     replace_na(list(Passage =0, Upstream =0, Downstream =0)) %>%
     group_by(Date, Hour) %>%
     summarise(didson_total_passage = sum(Passage))
@@ -44,4 +44,4 @@ didson_function <- function(didson_data) {
 }
 
 # x <- didson_function(didson_2021)
-# x$hourly
+ # x$daily

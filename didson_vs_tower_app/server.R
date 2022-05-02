@@ -53,17 +53,77 @@ shinyServer(function(input, output, session) {
   })
   
   output$didson_dailyplot1 <- renderPlot({
+    didson_prepped()$daily %>%
+      ggplot(aes(x = Date1, y = daily_passage)) +
+      geom_line() +
+      theme_classic() +
+      labs(title = "Daily Total DIDSON Passage Counts")
+    
     
   })
   
   output$didson_hourlyplot1 <- renderPlot({
 
-    #didson_tower_hourly_long <- pivot_longer(data = didson_prepped()$hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
     didson_prepped()$hourly %>%
       ggplot(aes(x = date_time, y = didson_total_passage)) +
         geom_line() +
         theme_classic() +
-        labs(title = "DIDSON Hourly Passage")
+        labs(title = "DIDSON Hourly Total Passage")
   })
+  
+
+# Tower upload logic ------------------------------------------------------
+  tower_sheets_name <- reactive({
+    if (!is.null(input$towerinput1)) {
+      return(excel_sheets(path = input$towerinput1$datapath))  
+    } else {
+      return(NULL)
+    }
+  })
+  
+  tower_raw_data <- reactive({
+    if (!is.null(input$towerinput1) && 
+        (input$tower_sheet1 %in% tower_sheets_name())) {
+      data <- read_excel(input$towerinput1$datapath, 
+                         sheet = input$tower_sheet1,
+                         col_types = c("numeric", "text", "date", 
+                                       "numeric", "numeric", "numeric")
+                         
+      )
+      
+      return(data)
+    } else {
+      return(NULL)
+    }
+  })
+  
+  #tower reactive
+  
+  tower_prepped <- reactive({
+    validate(
+      need(!is.null(tower_raw_data() ), "Please upload a data set")
+    )
+    tower_function(tower_raw_data() )
+  })
+  
+  output$tower_dailyplot1 <- renderPlot({
+    tower_prepped()$daily %>%
+      ggplot(aes(x = Date1, y = daily_passage)) +
+      geom_line() +
+      theme_classic() +
+      labs(title = "Daily Total tower Passage Counts",caption = "Both banks sum" )
+    
+    
+  })
+  
+  output$tower_hourlyplot1 <- renderPlot({
+    
+    tower_prepped()$hourly %>%
+      ggplot(aes(x = date_time, y = Count, color = Bank)) +
+      geom_line() +
+      theme_classic() +
+      labs(title = "Tower Hourly Total Passage")
+  })
+  
 
 })

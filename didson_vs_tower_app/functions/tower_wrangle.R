@@ -1,4 +1,4 @@
-### fucntion for wrangling tower data
+### function for wrangling tower data
 tower_function <- function(tower_data) {
   
   towers_2021_2<- tower_data %>%

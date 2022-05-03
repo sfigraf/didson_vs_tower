@@ -32,12 +32,23 @@ shinyUI(fluidPage(
              
              sidebarLayout(
                sidebarPanel(
-                 sliderInput("bins",
-                             "Number of bins:",
-                             min = 1,
-                             max = 50,
-                             value = 30)
-               ),
+                 
+                 dateRangeInput("didson_drangeinput1", "Select a Date Range:",
+                                start = "2020-08-01", 
+                                end = Sys.Date()
+                                
+                                ),#end of date range input
+                 
+                 sliderInput("didson_slider1", "Hour of Day",
+                             min = 0,
+                             max = 23,  
+                             value = c(0,23),
+                             step = 1,
+                             #timeFormat = "%T",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
+               ), #end of sidebar panel 
+              
                
                # Show a plot of the generated distribution
                mainPanel(
@@ -57,11 +68,20 @@ shinyUI(fluidPage(
     tabPanel("Tower Count Data",
              sidebarLayout(
                sidebarPanel(
-                 sliderInput("bins",
-                             "Number of bins:",
-                             min = 1,
-                             max = 50,
-                             value = 30)
+                 dateRangeInput("tower_drangeinput1", "Select a Date Range:",
+                                start = "2020-08-01", 
+                                end = Sys.Date()
+                                
+                 ),#end of date range input
+                 
+                 sliderInput("tower_slider1", "Hour of Day",
+                             min = 0,
+                             max = 23,  
+                             value = c(0,23),
+                             step = 1,
+                             #timeFormat = "%T",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
                ),
                
                # Show a plot of the generated distribution

@@ -9,6 +9,12 @@ didson_2021 <- read_excel("2021_RM22_DIDSON.xlsx",
                                                           "text", "text", "numeric", "numeric", 
                                                           "numeric"))
 
+towers <- tower_function(towers_2021)
+didson <- didson_function(didson_2021)
+unique(didson$hourly$Hour)
+didson$daily
+x <- didson_function(didson_2021)$hourly
+towers$hourly
 # Towers and wrangle ----------------------------------------------
 
 

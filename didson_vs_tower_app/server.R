@@ -70,7 +70,7 @@ shinyServer(function(input, output, session) {
     return(didson_filtered_list)
   })  
   
-  output$didson_dailyplot1 <- renderPlot({
+  output$didson_dailyplot1 <- renderPlotly({
     didson_filtered()$didson_filtered_daily %>%
       ggplot(aes(x = Date1, y = daily_passage)) +
       geom_line() +
@@ -80,7 +80,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$didson_hourlyplot1 <- renderPlot({
+  output$didson_hourlyplot1 <- renderPlotly({
 
     didson_filtered()$didson_filtered_hourly %>%
       ggplot(aes(x = date_time, y = didson_total_passage)) +
@@ -151,7 +151,7 @@ shinyServer(function(input, output, session) {
   
   
   
-  output$tower_dailyplot1 <- renderPlot({
+  output$tower_dailyplot1 <- renderPlotly({
     tower_filtered()$tower_filtered_daily %>%
       ggplot(aes(x = Date1, y = daily_passage)) +
       geom_line() +
@@ -161,7 +161,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$tower_hourlyplot1 <- renderPlot({
+  output$tower_hourlyplot1 <- renderPlotly({
     
     tower_filtered()$tower_filtered_hourly %>%
       ggplot(aes(x = date_time, y = Count, color = Bank)) +

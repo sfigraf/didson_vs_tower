@@ -1,4 +1,6 @@
-
+## To do:
+# add compare tab functionality, filters
+#plot proxy for outliers
 
 library(shiny)
 library(tidyverse)
@@ -6,6 +8,7 @@ library(lubridate)
 library(plotly)
 library(readxl)
 library(shinycssloaders)
+library(shinythemes)
 
 source("functions/didson_wrangle.R")
 source("functions/tower_wrangle.R")
@@ -13,6 +16,7 @@ source("functions/tower_wrangle.R")
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
+  theme = shinytheme("united"),
   titlePanel("DIDSON and Tower Data"),
   hr(),
   fluidRow(column(width = 2, offset = 0,
@@ -54,10 +58,10 @@ shinyUI(fluidPage(
                mainPanel(
                  tabsetPanel(
                    tabPanel("Daily Data",
-                           withSpinner(plotOutput("didson_dailyplot1")) 
+                           withSpinner(plotlyOutput("didson_dailyplot1")) 
                             ),
                    tabPanel("Hourly",
-                            withSpinner(plotOutput("didson_hourlyplot1"))
+                            withSpinner(plotlyOutput("didson_hourlyplot1"))
                             ),
                  ),# end of didson tabset panel
                  
@@ -88,10 +92,10 @@ shinyUI(fluidPage(
                mainPanel(
                  tabsetPanel(
                    tabPanel("Daily Data",
-                            withSpinner(plotOutput("tower_dailyplot1")) 
+                            withSpinner(plotlyOutput("tower_dailyplot1")) 
                    ),
                    tabPanel("Hourly",
-                            withSpinner(plotOutput("tower_hourlyplot1"))
+                            withSpinner(plotlyOutput("tower_hourlyplot1"))
                    ),
                  ),# end of tower tabset panel
                  

@@ -181,8 +181,8 @@ shinyServer(function(input, output, session) {
     
     
     joined_list <- list("daily" = didson_tower_daily,
-                        
-                        "hourly" = didson_tower_hourly_long 
+                        "hourly_wide" = didson_tower_hourly,
+                        "hourly_long" = didson_tower_hourly_long 
                         )
     return(joined_list)
   })
@@ -193,16 +193,26 @@ shinyServer(function(input, output, session) {
         Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
       )
     
-    filtered_hourly <- tower_didson_prepped()$hourly %>%
+    filtered_hourly_long <- tower_didson_prepped()$hourly_long %>%
       filter(
         Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
         hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
       )
     
-    tower_filtered_list <- list("daily" = filtered_daily, "hourly" =  filtered_hourly)
+    filtered_hourly_wide <- tower_didson_prepped()$hourly_wide %>%
+      filter(
+        Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
+        hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
+      )
+    
+    tower_filtered_list <- list("daily" = filtered_daily, "hourly_long" =  filtered_hourly_long,
+                                "hourly_wide" = filtered_hourly_wide)
     return(tower_filtered_list)
     
   })
+
+# Compare Plots -------------------------------------------------------
+
   
   output$didson_tower_dailyplot1 <- renderPlotly({
     didson_tower_filtered()$daily %>%
@@ -216,11 +226,38 @@ shinyServer(function(input, output, session) {
   
   output$didson_tower_hourlyplot1 <- renderPlotly({
 
-    didson_tower_filtered()$hourly %>%
+    didson_tower_filtered()$hourly_long %>%
       ggplot(aes(x = date_time, y = passage, color = type)) +
       geom_line() +
       theme_classic() +
       labs(title = "Hourly Comparison Tower and DIDSON")
+  })
+  
+  output$didson_tower_hourlyplot2 <- renderPlotly({
+    
+    formula1 <- y ~ x
+    rsq1 <- rsq(didson_tower_filtered()$hourly_wide$didson_total_passage, didson_tower_filtered()$hourly_wide$tower_total_count)
+    
+    plot <- didson_tower_filtered()$hourly_wide %>%
+      ggplot(aes(x = didson_total_passage, y = tower_total_count)) +
+      geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+      geom_point() +
+      theme_classic() +
+      labs(title = "DIDSON vs Tower", caption = paste(round(rsq1,2)))
+    
+    plot1 <- ggplotly(plot)
+    plot2 <- plot1 %>%
+      add_annotations(
+        #positioning on the graph
+        x = max(plot1$x$layout$xaxis$range)*.1,
+        y = max(plot1$x$layout$yaxis$range)*.9,
+        text = paste("R^2 =",round(rsq1,2)),
+        showarrow = F
+      ) %>% 
+      #this ensures the TeX is read/displayed how I want it
+      config(mathjax = 'cdn')
+    #layout(annotations = rsq1)
+    plot2
   })
   
   

@@ -1,17 +1,20 @@
 ## To do:
-# add compare tab functionality, filters
-#plot proxy for outliers
+#plot proxy for outliers and not redraweing plot when filters change
+
 
 library(shiny)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(ggpmisc) #for displaying rr on the scatterplots
 library(readxl)
 library(shinycssloaders)
 library(shinythemes)
 
 source("functions/didson_wrangle.R")
 source("functions/tower_wrangle.R")
+rsq <- function(x, y) summary(lm(y~x))$r.squared
+
 
 
 # Define UI for application that draws a histogram
@@ -108,7 +111,7 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
-                                start = "2021-07-25", 
+                                start = "2020-07-25", 
                                 end = Sys.Date()
                                 
                  ),#end of date range input
@@ -125,10 +128,12 @@ shinyUI(fluidPage(
                mainPanel(
                  tabsetPanel(
                    tabPanel("Daily Data",
-                            withSpinner(plotlyOutput("didson_tower_dailyplot1")) 
+                            withSpinner(plotlyOutput("didson_tower_dailyplot1")),
+                            withSpinner(plotlyOutput("didson_tower_dailyplot2"))
                    ),
                    tabPanel("Hourly",
-                            withSpinner(plotlyOutput("didson_tower_hourlyplot1"))
+                            withSpinner(plotlyOutput("didson_tower_hourlyplot1")),
+                            withSpinner(plotlyOutput("didson_tower_hourlyplot2"))
                    ),
                  ), #end of tabset panel
                ),#end of mainpanel

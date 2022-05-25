@@ -1,4 +1,5 @@
 library(readxl)
+library(tidyverse)
 towers_2021 <- read_excel("LACL Tower Escapement 2021.xlsx", 
                           col_types = c("numeric", "text", "date", 
                                         "numeric", "numeric", "numeric"))
@@ -56,6 +57,7 @@ all_totals <- toweres_collapsed %>%
   group_by(date_time) %>%
   summarise(tower_total_count = sum(Count))
 
+
 all_totals %>%
   ggplot(aes(x = date_time, y = tower_total_count, group =1)) +
   geom_line() +
@@ -79,7 +81,7 @@ daily_tower_2021totals1 <- daily_tower_2021totals %>%
   )
 
 daily_tower_2021totals1 %>%
-  ggplot(aes(x = Date1, y = daily_passage, group =1)) +
+  ggplot(aes(x = Date1, y = daily_passage, group = 1)) +
   geom_line() +
   theme_classic() +
   labs(title = "Daily Total Tower Counts", caption = "Both banks sum" )
@@ -137,7 +139,7 @@ ggplotly(plot)
 
 # Hourly Compare ----------------------------------------------------------
 didson_hourly <- didson_2021 %>%
-  replace_na(list(Passage =0, Upstream =0, Downstream =0)) %>%
+  replace_na(list(Passage = 0, Upstream = 0, Downstream = 0)) %>%
   group_by(Date, Hour) %>%
   summarise(didson_total_passage = sum(Passage))
 
@@ -161,7 +163,7 @@ didson_hourly1 %>%
 didson_tower_hourly <- left_join(didson_hourly1, all_totals, by = "date_time")
 
 
-
+# this file is in the 
 didson_tower_hourly_long <- pivot_longer(data = didson_tower_hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
 
 #
@@ -236,5 +238,36 @@ outliers_by_ratio_and_difference <- intersect(outliers_by_ratio,outliers_by_diff
 #compare tab: text input filters for percentiles upper bound/lower bound
 # graph of ratios; graph of differences; highlight outliers with plotly proxy? datatable of outliers?
 
+library(ggpmisc)
+
+formula1 <- y ~ x
+rsq <- function (x, y) cor(x, y) ^ 2
+rsq <- function(x, y) summary(lm(y~x))$r.squared
+
+rsq1 <- rsq(didson_tower_hourly$didson_total_passage, didson_tower_hourly$tower_total_count)
+plot <- didson_tower_hourly %>%
+  ggplot(aes(x = didson_total_passage, y = tower_total_count)) +
+  geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+  # stat_poly_eq(formula = formula1,
+  #              eq.with.lhs = "italic(hat(y))~`=`~",
+  #              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+  #              parse = TRUE) +
+  geom_point() +
+  theme_classic() +
+  labs(caption = paste(round(rsq1,2)))
+
+plot1 <- ggplotly(plot)
+plot2 <- plot1 %>%
+  add_annotations(
+    #positioning on the graph
+    x = max(plot1$x$layout$xaxis$range)*.1,
+    y = max(plot1$x$layout$yaxis$range)*.9,
+    text = paste("R^2 =",round(rsq1,2)),
+    showarrow = F
+  ) %>% 
+  #this ensures the TeX is read/displayed how I want it
+  config(mathjax = 'cdn')
+  #layout(annotations = rsq1)
+plot2
 
 

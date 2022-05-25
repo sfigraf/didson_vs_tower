@@ -121,13 +121,11 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(tower_raw_data() ), "Please upload a data set")
     )
-    tower_list <- list("daily" = tower_function(tower_raw_data())$daily, "hourly" = tower_function(tower_raw_data())$hourly )
+    tower_list <- list("daily" = tower_function(tower_raw_data())$daily, "hourly" = tower_function(tower_raw_data())$hourly, "hourly_condensed" = tower_function(tower_raw_data())$hourly_condensed  )
     return(tower_list)
   })
   
-  # tower_data_list <- list("daily" = tower_function(data)$daily, "hourly" = tower_function(data)$hourly)
-  # 
-  # return(tower_data_list)#tower reactive
+  
   
   
   tower_filtered <- reactive({
@@ -144,8 +142,6 @@ shinyServer(function(input, output, session) {
     
     tower_filtered_list <- list("tower_filtered_daily" = filtered_daily, "tower_filtered_hourly" =  filtered_hourly)
     return(tower_filtered_list)
-    
-   
   
   })
   
@@ -169,6 +165,64 @@ shinyServer(function(input, output, session) {
       theme_classic() +
       labs(title = "Tower Hourly Total Passage")
   })
+  
+
+# Comparison Logic --------------------------------------------------------
+
+  tower_didson_prepped <- reactive({
+    validate(
+      need(!is.null(tower_raw_data()) & !is.null(didson_raw_data() ), "Please upload both data sets")
+    )
+    #daily
+    didson_tower_daily <- bind_rows(tower_prepped()$daily, didson_prepped()$daily )
+    #hourly stuff
+    didson_tower_hourly <- left_join(tower_prepped()$hourly_condensed, didson_prepped()$hourly, by = "date_time")
+    didson_tower_hourly_long <- pivot_longer(data = didson_tower_hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
+    
+    
+    joined_list <- list("daily" = didson_tower_daily,
+                        
+                        "hourly" = didson_tower_hourly_long 
+                        )
+    return(joined_list)
+  })
+  
+  didson_tower_filtered <- reactive({
+    filtered_daily <- tower_didson_prepped()$daily %>%
+      filter(
+        Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
+      )
+    
+    filtered_hourly <- tower_didson_prepped()$hourly %>%
+      filter(
+        Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
+        hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
+      )
+    
+    tower_filtered_list <- list("daily" = filtered_daily, "hourly" =  filtered_hourly)
+    return(tower_filtered_list)
+    
+  })
+  
+  output$didson_tower_dailyplot1 <- renderPlotly({
+    didson_tower_filtered()$daily %>%
+      ggplot(aes(x = Date2, y = daily_passage, color = Type)) +
+      geom_line() +
+      theme_classic() +
+      labs(title = "Didson vs Tower Daily Escapement Compare", caption = "Tower counts are from left bank only. Data not collected on tower between 0-4 AM")
+    
+    
+  })
+  
+  output$didson_tower_hourlyplot1 <- renderPlotly({
+
+    didson_tower_filtered()$hourly %>%
+      ggplot(aes(x = date_time, y = passage, color = type)) +
+      geom_line() +
+      theme_classic() +
+      labs(title = "Hourly Comparison Tower and DIDSON")
+  })
+  
   
 
 })

@@ -11,8 +11,12 @@ didson_2021 <- read_excel("2021_RM22_DIDSON.xlsx",
 
 towers <- tower_function(towers_2021)
 didson <- didson_function(didson_2021)
+
 unique(didson$hourly$Hour)
 didson$daily
+towers$daily
+towers$hourly
+didson$hourly
 x <- didson_function(didson_2021)$hourly
 towers$hourly
 # Towers and wrangle ----------------------------------------------
@@ -109,6 +113,27 @@ didson_all_daily_passage2021 <- didson_2021_2 %>%
 
 didson_tower2021 <- bind_rows(didson_all_daily_passage2021, daily_tower_2021totals1)
 
+#ratio
+d_t_wide <- didson_tower2021 %>%
+  pivot_wider(names_from = Type, values_from = daily_passage) %>%
+  mutate(dif1 = DIDSON - Tower,
+         ratio1 = DIDSON/Tower)
+
+plot <- d_t_wide %>%
+  ggplot(aes(x = Date2, y = ratio1)) +
+  geom_line() +
+  theme_classic() +
+  labs(title = "Ratio of DIDSON/Tower Salmon Counts")
+
+ggplotly(plot)
+
+plot <- didson_tower2021 %>%
+ggplot(aes(x = Date2, y = daily_passage, color = Type)) +
+  geom_line() +
+  theme_classic() +
+  labs(title = "Didson vs Tower Daily Escapement Compare", caption = "Tower counts are from left bank only. Data not collected on tower between 0-4 AM")
+ggplotly(plot)
+
 
 # Hourly Compare ----------------------------------------------------------
 didson_hourly <- didson_2021 %>%
@@ -139,10 +164,14 @@ didson_tower_hourly <- left_join(didson_hourly1, all_totals, by = "date_time")
 
 didson_tower_hourly_long <- pivot_longer(data = didson_tower_hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
 
-didson_tower_hourly_long %>%
+#
+plot <- didson_tower_hourly_long %>%
   ggplot(aes(x = date_time, y = passage, color = type)) +
   geom_line() +
-  theme_classic()
+  theme_classic() +
+  labs(title = "Hourly Comparison Tower and DIDSON")
+
+ggplotly(plot)
 
 didson_tower_hourly1 <- didson_tower_hourly %>%
   replace_na(list(tower_total_count = 0)) %>%
@@ -150,6 +179,7 @@ didson_tower_hourly1 <- didson_tower_hourly %>%
   mutate(dif1 = didson_total_passage - tower_total_count,
          ratio1 = didson_total_passage/tower_total_count)
 
+#trying to see where the ratios varied siginficantly
 didson_tower_hourly1 %>%
   ggplot(aes(x = date_time, y = ratio1)) +
   geom_line()+

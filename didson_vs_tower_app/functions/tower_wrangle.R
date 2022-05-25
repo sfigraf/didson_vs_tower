@@ -37,6 +37,6 @@ tower_function <- function(tower_data) {
            Type = "Tower"
     )
   
-  tower_list <- list("hourly" = toweres_collapsed, "daily" = daily_tower_2021totals1)
+  tower_list <- list("hourly" = toweres_collapsed, "daily" = daily_tower_2021totals1, "hourly_condensed" = all_totals)
   return(tower_list)
 }

@@ -104,7 +104,37 @@ shinyUI(fluidPage(
              
     ), #end of tower tabpanel
             
-    tabPanel("Comparisons",), #end of comparisons tabpanel
+    tabPanel("Comparisons",
+             sidebarLayout(
+               sidebarPanel(
+                 dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
+                                start = "2021-07-25", 
+                                end = Sys.Date()
+                                
+                 ),#end of date range input
+                 
+                 sliderInput("didson_tower_slider1", "Hour of Day",
+                             min = 0,
+                             max = 23,  
+                             value = c(0,23),
+                             step = 1,
+                             #timeFormat = "%T",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
+               ), #end of sidebar panel
+               mainPanel(
+                 tabsetPanel(
+                   tabPanel("Daily Data",
+                            withSpinner(plotlyOutput("didson_tower_dailyplot1")) 
+                   ),
+                   tabPanel("Hourly",
+                            withSpinner(plotlyOutput("didson_tower_hourlyplot1"))
+                   ),
+                 ), #end of tabset panel
+               ),#end of mainpanel
+             ),# end of sidebar layout
+             
+             ), #end of comparisons tabpanel
   ), #end of navbar page
 
     # Application title

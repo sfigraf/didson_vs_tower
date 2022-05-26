@@ -13,6 +13,22 @@ library(shiny)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
 
+# UI Updates --------------------------------------------------------------
+
+observeEvent(input$didsoninput1,{
+  updatePickerInput(session, "didson_picker1",
+                   selected = NULL, 
+                   choices = didson_sheets_name()
+  )
+})  
+  
+  observeEvent(input$towerinput1,{
+    updatePickerInput(session, "tower_picker1",
+                      selected = NULL, 
+                      choices = tower_sheets_name()
+    )
+  }) 
+
 # DIDSON read-ins -----------------------------------------------------------
 
   
@@ -26,9 +42,9 @@ shinyServer(function(input, output, session) {
   
   didson_raw_data <- reactive({
     if (!is.null(input$didsoninput1) && 
-        (input$didson_sheet1 %in% didson_sheets_name())) {
+        (input$didson_picker1 %in% didson_sheets_name())) {
       data <- read_excel(input$didsoninput1$datapath, 
-                         sheet = input$didson_sheet1,
+                         sheet = input$didson_picker1,
                          col_types = c("numeric", 
                                        "date", "numeric", "numeric", "numeric", 
                                        "numeric", "numeric", "numeric", 
@@ -103,9 +119,9 @@ shinyServer(function(input, output, session) {
     
     
     if (!is.null(input$towerinput1) && 
-        (input$tower_sheet1 %in% tower_sheets_name())) {
+        (input$tower_picker1 %in% tower_sheets_name())) {
       data <- read_excel(input$towerinput1$datapath, 
-                         sheet = input$tower_sheet1,
+                         sheet = input$tower_picker1,
                          col_types = c("numeric", "text", "date", 
                                        "numeric", "numeric", "numeric")
                          

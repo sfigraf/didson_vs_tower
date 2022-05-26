@@ -1,5 +1,6 @@
 ## To do:
-#plot proxy for outliers and not redraweing plot when filters change
+#plot proxy for outliers and not redraweing plot when filters change?
+# daily scatter plot not just hourly
 
 
 library(shiny)
@@ -9,6 +10,7 @@ library(plotly)
 library(ggpmisc) #for displaying rr on the scatterplots
 library(readxl)
 library(shinycssloaders)
+library(shinyWidgets) # for pickerinput
 library(shinythemes)
 
 source("functions/didson_wrangle.R")
@@ -24,15 +26,30 @@ shinyUI(fluidPage(
   hr(),
   fluidRow(column(width = 2, offset = 0,
                   fileInput("didsoninput1", "Input DIDSON",accept = c(".xlsx")),
-                  textInput("didson_sheet1", "Input Sheet Name"),
+                  pickerInput(
+                    inputId = "didson_picker1",
+                    label = "Select Sheet:",
+                    choices = NULL,
+                    selected = NULL,
+                    multiple = FALSE
+                  ), #end of pickerINput
+                  
                   ),
            column(width = 2,
                   fileInput("towerinput1", "Input Tower Data",accept = c(".xlsx")),
-                  textInput("tower_sheet1", "Input Sheet Name"),
-                  
+                  pickerInput(
+                    inputId = "tower_picker1",
+                    label = "Select Sheet:",
+                    choices = NULL,
+                    selected = NULL,
+                    multiple = FALSE
+                  ), #end of pickerINput
                   offset = 0)
            ), #end of fluidROw
   
+
+# DIDSON UI ---------------------------------------------------------------
+
   
   navbarPage(title = "Data",
     tabPanel("DIDSON Sonar Data",
@@ -72,6 +89,11 @@ shinyUI(fluidPage(
              ) #end of didson sidebar layout
              
              ), #end of didson tabpanel
+    
+
+# Tower UI ----------------------------------------------------------------
+
+    
     tabPanel("Tower Count Data",
              sidebarLayout(
                sidebarPanel(

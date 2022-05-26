@@ -270,4 +270,5 @@ plot2 <- plot1 %>%
   #layout(annotations = rsq1)
 plot2
 
+excel_sheets(path = "2021_RM22_DIDSON.xlsx")
 

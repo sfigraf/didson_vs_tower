@@ -1,11 +1,4 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+
 
 library(shiny)
 
@@ -227,6 +220,11 @@ observeEvent(input$didsoninput1,{
         Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
       )
     
+    filtered_daily_wide <- tower_didson_prepped()$daily_wide %>%
+      filter(
+        Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
+      )
+    
     filtered_hourly_long <- tower_didson_prepped()$hourly_long %>%
       filter(
         Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
@@ -239,7 +237,9 @@ observeEvent(input$didsoninput1,{
         hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
       )
     
-    tower_filtered_list <- list("daily_long" = filtered_daily_long, "hourly_long" =  filtered_hourly_long,
+    tower_filtered_list <- list("daily_long" = filtered_daily_long, 
+                                "daily_wide" = filtered_daily_wide,
+                                "hourly_long" =  filtered_hourly_long,
                                 "hourly_wide" = filtered_hourly_wide)
     return(tower_filtered_list)
     
@@ -257,6 +257,33 @@ observeEvent(input$didsoninput1,{
     
     
   })
+  output$didson_tower_dailyplot2 <- renderPlotly({
+    
+    formula1 <- y ~ x
+    rsq1 <- rsq(didson_tower_filtered()$daily_wide$DIDSON, didson_tower_filtered()$daily_wide$Tower)
+    
+    plot <- d_t_wide %>%
+      ggplot(aes(x = DIDSON, y = Tower, text = Date1)) +
+      geom_point() +
+      geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+      theme_classic() + 
+      labs(title = "DIDSON vs Tower Daily")
+    
+    plot1 <- ggplotly(plot)
+    plot2 <- plot1 %>%
+      add_annotations(
+        #positioning on the graph
+        x = max(plot1$x$layout$xaxis$range)*.1,
+        y = max(plot1$x$layout$yaxis$range)*.9,
+        text = paste("R^2 =",round(rsq1,2)),
+        showarrow = F
+      ) %>% 
+      #this ensures the TeX is read/displayed how I want it
+      config(mathjax = 'cdn')
+    #layout(annotations = rsq1)
+    plot2
+  })
+  
   
   output$didson_tower_hourlyplot1 <- renderPlotly({
 

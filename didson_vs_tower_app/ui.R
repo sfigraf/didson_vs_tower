@@ -1,6 +1,7 @@
 ## To do:
-#plot proxy for outliers and not redraweing plot when filters change?
-# daily scatter plot not just hourly
+# red highlight outliers: try and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
+#plot proxy for outliers and not redrawing plot when filters change?
+# update slider input when datatable is able to render 
 
 
 library(shiny)
@@ -64,7 +65,7 @@ shinyUI(fluidPage(
                              value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
                              step = 1,
                              timeFormat = "%d %b %y",
-                             animate = animationOptions(interval = 500, loop = FALSE)
+                             #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
                  dateRangeInput("didson_drangeinput1", "Select a Date Range:",
                                 start = "2020-08-01", 

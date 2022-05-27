@@ -136,6 +136,13 @@ ggplot(aes(x = Date2, y = daily_passage, color = Type)) +
   theme_classic() +
   labs(title = "Didson vs Tower Daily Escapement Compare", caption = "Tower counts are from left bank only. Data not collected on tower between 0-4 AM")
 ggplotly(plot)
+d_t_wide %>%
+  ggplot(aes(x = DIDSON, y = Tower)) +
+  geom_point() +
+  geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+  theme_classic() + 
+  labs(title = "DIDSON vs Tower Daily")
+  
 
 
 # Hourly Compare ----------------------------------------------------------

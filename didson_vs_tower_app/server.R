@@ -30,14 +30,17 @@ observeEvent(input$didsoninput1,{
     )
   }) 
   
-  observeEvent(input$didson_picker1, {
-    updateSliderInput(session, "didson_slider2",
-                      min = #as.Date("2001-04-15"),
-                        min(didson_prepped()$daily$Date1-1),
-                      max = max(didson_prepped()$daily$Date1+1),
-                      value = c(min(didson_prepped()$daily$Date1 -1),max(didson_prepped()$daily$Date1 +1))
-    )
-  })
+  # reactive({
+  #   validate(
+  #     need(!is.null(didson_prepped() ), "Please upload a data set")
+  #   )
+  #   updateSliderInput(session, "didson_slider2",
+  #                     min = #as.Date("2001-04-15"),
+  #                       min(didson_prepped()$daily$Date1-1),
+  #                     max = max(didson_prepped()$daily$Date1+1),
+  #                     value = c(min(didson_prepped()$daily$Date1 -1),max(didson_prepped()$daily$Date1 +1))
+  #   )
+  # })
 
 # DIDSON read-ins -----------------------------------------------------------
 
@@ -76,6 +79,8 @@ observeEvent(input$didsoninput1,{
     validate(
       need(!is.null(didson_raw_data() ), "Please upload a data set")
     )
+    
+    
     didson_list <- list("daily" = didson_function(didson_raw_data())$daily, "hourly" = didson_function(didson_raw_data())$hourly )
     return(didson_list)
   })
@@ -201,12 +206,15 @@ observeEvent(input$didsoninput1,{
     )
     #daily
     didson_tower_daily <- bind_rows(tower_prepped()$daily, didson_prepped()$daily )
+    didson_tower_daily_wide <- didson_tower_daily %>%
+      pivot_wider(names_from = Type, values_from = daily_passage) 
     #hourly stuff
     didson_tower_hourly <- left_join(tower_prepped()$hourly_condensed, didson_prepped()$hourly, by = "date_time")
     didson_tower_hourly_long <- pivot_longer(data = didson_tower_hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
     
     
-    joined_list <- list("daily" = didson_tower_daily,
+    joined_list <- list("daily_long" = didson_tower_daily,
+                        "daily_wide" = didson_tower_daily_wide,
                         "hourly_wide" = didson_tower_hourly,
                         "hourly_long" = didson_tower_hourly_long 
                         )
@@ -214,7 +222,7 @@ observeEvent(input$didsoninput1,{
   })
   
   didson_tower_filtered <- reactive({
-    filtered_daily <- tower_didson_prepped()$daily %>%
+    filtered_daily_long <- tower_didson_prepped()$daily_long %>%
       filter(
         Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
       )
@@ -231,7 +239,7 @@ observeEvent(input$didsoninput1,{
         hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
       )
     
-    tower_filtered_list <- list("daily" = filtered_daily, "hourly_long" =  filtered_hourly_long,
+    tower_filtered_list <- list("daily_long" = filtered_daily_long, "hourly_long" =  filtered_hourly_long,
                                 "hourly_wide" = filtered_hourly_wide)
     return(tower_filtered_list)
     
@@ -241,7 +249,7 @@ observeEvent(input$didsoninput1,{
 
   
   output$didson_tower_dailyplot1 <- renderPlotly({
-    didson_tower_filtered()$daily %>%
+    didson_tower_filtered()$daily_long %>%
       ggplot(aes(x = Date2, y = daily_passage, color = Type)) +
       geom_line() +
       theme_classic() +

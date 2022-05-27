@@ -20,6 +20,7 @@ observeEvent(input$didsoninput1,{
                    selected = NULL, 
                    choices = didson_sheets_name()
   )
+  
 })  
   
   observeEvent(input$towerinput1,{
@@ -28,6 +29,15 @@ observeEvent(input$didsoninput1,{
                       choices = tower_sheets_name()
     )
   }) 
+  
+  observeEvent(input$didson_picker1, {
+    updateSliderInput(session, "didson_slider2",
+                      min = #as.Date("2001-04-15"),
+                        min(didson_prepped()$daily$Date1-1),
+                      max = max(didson_prepped()$daily$Date1+1),
+                      value = c(min(didson_prepped()$daily$Date1 -1),max(didson_prepped()$daily$Date1 +1))
+    )
+  })
 
 # DIDSON read-ins -----------------------------------------------------------
 
@@ -73,12 +83,12 @@ observeEvent(input$didsoninput1,{
   didson_filtered <-reactive({
     filtered_daily <- didson_prepped()$daily %>%
       filter(
-        Date1 >= input$didson_drangeinput1[1] & Date1 <= input$didson_drangeinput1[2],
+        Date1 >= input$didson_slider2[1] & Date1 <= input$didson_slider2[2],
       )
     
     filtered_hourly <- didson_prepped()$hourly %>%
       filter(
-        Date >= input$didson_drangeinput1[1] & Date <= input$didson_drangeinput1[2],
+        Date >= input$didson_slider2[1] & Date <= input$didson_slider2[2],
         hour(date_time) >= input$didson_slider1[1] & hour(date_time) <= input$didson_slider1[2],
       )
     

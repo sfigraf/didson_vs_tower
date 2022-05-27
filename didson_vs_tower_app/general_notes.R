@@ -1,5 +1,6 @@
 library(readxl)
 library(tidyverse)
+library(plotly)
 towers_2021 <- read_excel("LACL Tower Escapement 2021.xlsx", 
                           col_types = c("numeric", "text", "date", 
                                         "numeric", "numeric", "numeric"))

@@ -31,7 +31,8 @@ shinyUI(fluidPage(
                     label = "Select Sheet:",
                     choices = NULL,
                     selected = NULL,
-                    multiple = FALSE
+                    multiple = FALSE,
+                    options = pickerOptions(container = "body") #makes it so picker dropdown isn't behind navbar
                   ), #end of pickerINput
                   
                   ),
@@ -42,7 +43,8 @@ shinyUI(fluidPage(
                     label = "Select Sheet:",
                     choices = NULL,
                     selected = NULL,
-                    multiple = FALSE
+                    multiple = FALSE,
+                    options = pickerOptions(container = "body")
                   ), #end of pickerINput
                   offset = 0)
            ), #end of fluidROw
@@ -56,7 +58,14 @@ shinyUI(fluidPage(
              
              sidebarLayout(
                sidebarPanel(
-                 
+                 sliderInput("didson_slider2", "Date",
+                             min = as.Date("2020-08-01"), 
+                             max = Sys.Date(),  
+                             value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
+                             step = 1,
+                             timeFormat = "%d %b %y",
+                             animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
                  dateRangeInput("didson_drangeinput1", "Select a Date Range:",
                                 start = "2020-08-01", 
                                 end = Sys.Date()

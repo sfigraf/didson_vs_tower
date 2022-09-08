@@ -119,25 +119,26 @@ didson_all_daily_passage2021 <- didson_2021_2 %>%
 didson_2 <- didson_2021 %>%
   #filter(!is.na(Passage))
   filter(Minute %in% c(50,0)) %>%
-  mutate(Date1 = ymd(Date),
-         date_time = ymd_hm(paste(Date1, Hour,Minute)),
+  mutate(date2 = ymd(Date),
+         date_time = ymd_hm(paste(date2, Hour,Minute)),
          Type = "DIDSON"
   ) %>%
-  select(date_time, Upstream, Downstream, Passage)
+  select(date_time, date2, Passage)
 
 
 # Paired Counts Compare ---------------------------------------------------
 
-paired <- left_join(Lbanktowers_2021_2,didson_2, by = "date_time")
+paired <- left_join(Lbanktowers_2021_2,didson_2, by = c("date_time", "date2"))
 
 paired2 <- paired %>%
   filter(Hour >= 4) %>%
-  select(date_time, Passage, LBank)
+  select(date_time, date2, Passage, LBank) %>%
+  rename(DIDSON = Passage,
+         Lbank_tower = LBank,
+         Date = date2)
 
 #plot ready 
 paired3 <- paired2 %>%
-  rename(DIDSON = Passage,
-         Lbank_tower = LBank) %>%
   pivot_longer(cols = c(DIDSON, Lbank_tower), names_to = "Type", values_to = "passage") %>%
   filter(!is.na(passage))
 

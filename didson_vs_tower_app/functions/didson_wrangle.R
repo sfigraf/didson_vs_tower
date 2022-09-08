@@ -39,7 +39,16 @@ didson_function <- function(didson_data) {
     ) %>%
     na.omit()
   
-  didson_list <- list("daily" = didson_all_daily_passage2021, "hourly" = didson_hourly1)
+  ### ready for paired 
+  paired_didson <- didson_data %>%
+    filter(Minute %in% c(50,0)) %>%
+    mutate(date2 = ymd(Date),
+           date_time = ymd_hm(paste(date2, Hour,Minute)),
+           Type = "DIDSON"
+    ) %>%
+    select(date_time, date2, Passage)
+  
+  didson_list <- list("daily" = didson_all_daily_passage2021, "hourly" = didson_hourly1, "paired_didson" = paired_didson)
   return(didson_list)
 }
 

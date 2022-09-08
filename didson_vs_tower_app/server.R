@@ -74,7 +74,7 @@ observeEvent(input$didsoninput1,{
     )
     
     
-    didson_list <- list("daily" = didson_function(didson_raw_data())$daily, "hourly" = didson_function(didson_raw_data())$hourly )
+    didson_list <- list("daily" = didson_function(didson_raw_data())$daily, "hourly" = didson_function(didson_raw_data())$hourly, "paired_didson" =  didson_function(didson_raw_data())$paired_didson)
     return(didson_list)
   })
   
@@ -145,7 +145,8 @@ observeEvent(input$didsoninput1,{
     validate(
       need(!is.null(tower_raw_data() ), "Please upload a data set")
     )
-    tower_list <- list("daily" = tower_function(tower_raw_data())$daily, "hourly" = tower_function(tower_raw_data())$hourly, "hourly_condensed" = tower_function(tower_raw_data())$hourly_condensed  )
+    ####THIS Seems unnecesary to me....clean it up!
+    tower_list <- list("daily" = tower_function(tower_raw_data())$daily, "hourly" = tower_function(tower_raw_data())$hourly, "hourly_condensed" = tower_function(tower_raw_data())$hourly_condensed, "paired_towers" =  tower_function(tower_raw_data())$paired_towers )
     return(tower_list)
   })
   
@@ -205,11 +206,27 @@ observeEvent(input$didsoninput1,{
     didson_tower_hourly <- left_join(tower_prepped()$hourly_condensed, didson_prepped()$hourly, by = "date_time")
     didson_tower_hourly_long <- pivot_longer(data = didson_tower_hourly, cols = !c(date_time, Date, Hour), names_to = "type", values_to = "passage")
     
+    #paired 
+    paired <- left_join(tower_prepped()$paired_towers,didson_prepped()$paired_didson, by = c("date_time", "date2"))
+    
+    paired2 <- paired %>%
+      filter(Hour >= 4) %>%
+      select(date_time, date2, Passage, LBank) %>%
+      rename(DIDSON = Passage,
+             Lbank_tower = LBank,
+             Date = date2) 
+    
+    #plot ready 
+    paired3_long <- paired2 %>%
+      pivot_longer(cols = c(DIDSON, Lbank_tower), names_to = "Type", values_to = "passage") %>%
+      filter(!is.na(passage))
     
     joined_list <- list("daily_long" = didson_tower_daily,
                         "daily_wide" = didson_tower_daily_wide,
                         "hourly_wide" = didson_tower_hourly,
-                        "hourly_long" = didson_tower_hourly_long 
+                        "hourly_long" = didson_tower_hourly_long,
+                        "paired_long" = paired3_long, 
+                        "paired_wide" = paired2
                         )
     return(joined_list)
   })
@@ -217,30 +234,47 @@ observeEvent(input$didsoninput1,{
   didson_tower_filtered <- reactive({
     filtered_daily_long <- tower_didson_prepped()$daily_long %>%
       filter(
-        Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
+        Date1 >= input$didson_tower_slider2[1] & Date1 <= input$didson_tower_slider2[2],
       )
     
     filtered_daily_wide <- tower_didson_prepped()$daily_wide %>%
       filter(
-        Date1 >= input$didson_tower_drangeinput1[1] & Date1 <= input$didson_tower_drangeinput1[2],
+        Date1 >= input$didson_tower_slider2[1] & Date1 <= input$didson_tower_slider2[2],
       )
     
     filtered_hourly_long <- tower_didson_prepped()$hourly_long %>%
       filter(
-        Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
+        Date >= input$didson_tower_slider2[1] & Date <= input$didson_tower_slider2[2],
         hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
       )
     
     filtered_hourly_wide <- tower_didson_prepped()$hourly_wide %>%
       filter(
-        Date >= input$didson_tower_drangeinput1[1] & Date <= input$didson_tower_drangeinput1[2],
+        Date >= input$didson_tower_slider2[1] & Date <= input$didson_tower_slider2[2],
         hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
       )
     
+    
+    ### Paired filter logic
+    filtered_paired_wide <- tower_didson_prepped()$paired_wide %>%
+      filter(
+        Date >= input$didson_tower_slider2[1] & Date <= input$didson_tower_slider2[2],
+        hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
+      )
+    
+    filtered_paired_long <- tower_didson_prepped()$paired_long %>%
+      filter(
+        Date >= input$didson_tower_slider2[1] & Date <= input$didson_tower_slider2[2],
+        hour(date_time) >= input$didson_tower_slider1[1] & hour(date_time) <= input$didson_tower_slider1[2],
+      )
+    
+    ## make list to return as object
     tower_filtered_list <- list("daily_long" = filtered_daily_long, 
                                 "daily_wide" = filtered_daily_wide,
                                 "hourly_long" =  filtered_hourly_long,
-                                "hourly_wide" = filtered_hourly_wide)
+                                "hourly_wide" = filtered_hourly_wide,
+                                "paired_long" = filtered_paired_long,
+                                "paired_wide" = filtered_paired_wide)
     return(tower_filtered_list)
     
   })
@@ -321,6 +355,44 @@ observeEvent(input$didsoninput1,{
     plot2
   })
   
+  #### paired plots
+  output$didson_tower_pairedplot1 <- renderPlotly({
+    plot <- didson_tower_filtered()$paired_long %>%
+      ggplot(aes(x = date_time, y = passage, fill = Type)) +
+      geom_bar(stat = "identity", 
+               position = "dodge"
+               #width = 1
+               ) +
+      theme_classic() +
+      labs(title = "Paired counts compare")
+    ggplotly(plot)
+  })
+  
+  output$didson_tower_pairedplot2 <- renderPlotly({
+    formula1 <- y ~ x
+    
+    rsq1 <- rsq(didson_tower_filtered()$paired_wide$DIDSON, didson_tower_filtered()$paired_wide$Lbank_tower)
+    
+    plot <- didson_tower_filtered()$paired_wide %>%
+      ggplot(aes(x = DIDSON, y = Lbank_tower, text = date_time)) +
+      geom_point() +
+      geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+      theme_classic() +
+      labs(title = "Paired counts compare")
+    #turns to plotly object so i can add annotations
+    plot1 <- ggplotly(plot)
+    plot2 <- plot1 %>%
+      add_annotations(
+        #positioning on the graph
+        x = max(plot1$x$layout$xaxis$range)*.1,
+        y = max(plot1$x$layout$yaxis$range)*.9,
+        text = paste("R^2 =",round(rsq1,2)),
+        showarrow = F
+      ) %>% 
+      #this ensures the TeX is read/displayed how I want it
+      config(mathjax = 'cdn')
+    plot2
+  })
   
 
 })

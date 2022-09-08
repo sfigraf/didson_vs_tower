@@ -32,12 +32,23 @@ tower_function <- function(tower_data) {
   daily_tower_2021totals1 <- daily_tower_2021totals %>%
     rename(daily_passage = total_count,
            Date1 = date2) %>%
-    mutate(Year1 = as.character(year(`Date1`)), #allows variabes to be discrete when grpahed instead of continuous
+    mutate(Year1 = as.character(year(`Date1`)), #allows variabes to be discrete when graphed instead of continuous
            #day1 = paste0(month(`date(date_time)`), "/", day(`date(date_time)`)),
            Date2 = ymd(paste("0001", month(Date1), day(Date1))),
            Type = "Tower"
     )
   
-  tower_list <- list("hourly" = toweres_collapsed, "daily" = daily_tower_2021totals1, "hourly_condensed" = all_totals)
+  ### paired ready
+  Lbanktowers_2021_2 <- tower_data %>%
+    select(-RBank) %>%
+    mutate(date1 = str_sub(Date, 6, -1),
+           # For left bank only, the counts start at 50 minutes for even-numbered hours, and at minute 0 for odd-numbered hours
+           Minute = case_when((Hour %% 2) == 0 ~ 50,
+                              (Hour %% 2) != 0 ~ 0),
+           date2 = as.Date(ymd(paste(Year, date1))),
+           date_time = ymd_hm(paste(Year, date1, Hour, Minute))
+    ) #end of mutate 
+  
+  tower_list <- list("hourly" = toweres_collapsed, "daily" = daily_tower_2021totals1, "hourly_condensed" = all_totals, "paired_towers" = Lbanktowers_2021_2)
   return(tower_list)
 }

@@ -1,6 +1,11 @@
 ## To do:
-# Daily Rsquared value doesn't show up; 
-# red highlight outliers: try and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
+#"chage comparisons daterange input to slider"
+#play around with bar width on paired plot
+#graph hour on that x axis instread of date_time?
+#update UI so date range changes based on file inputs
+# cut down stuff that is necessary in app vs uneecessary
+# format data from other years to be like 2021 so it's compatible with app
+# red highlight outliers: try  and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
 #plot proxy for outliers and not redrawing plot when filters change?
 # update slider input when datatable is able to render 
 
@@ -69,11 +74,11 @@ shinyUI(fluidPage(
                              timeFormat = "%d %b %y",
                              #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
-                 dateRangeInput("didson_drangeinput1", "Select a Date Range:",
-                                start = "2020-08-01", 
-                                end = Sys.Date()
-                                
-                                ),#end of date range input
+                 # dateRangeInput("didson_drangeinput1", "Select a Date Range:",
+                 #                start = "2020-08-01", 
+                 #                end = Sys.Date()
+                 #                
+                 #                ),#end of date range input
                  
                  sliderInput("didson_slider1", "Hour of Day",
                              min = 0,
@@ -140,10 +145,21 @@ shinyUI(fluidPage(
              ) #end of tower sidebar layout
              
     ), #end of tower tabpanel
+
+# Comparisons Tab Panel ---------------------------------------------------
+
             
     tabPanel("Comparisons",
              sidebarLayout(
                sidebarPanel(
+                 sliderInput("didson_tower_slider2", "Date",
+                             min = as.Date("2020-08-01"), 
+                             max = Sys.Date(),  
+                             value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
+                             step = 1,
+                             timeFormat = "%d %b %y",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
                  dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
                                 start = "2020-07-25", 
                                 end = Sys.Date()
@@ -168,6 +184,10 @@ shinyUI(fluidPage(
                    tabPanel("Hourly",
                             withSpinner(plotlyOutput("didson_tower_hourlyplot1")),
                             withSpinner(plotlyOutput("didson_tower_hourlyplot2"))
+                   ),
+                   tabPanel("Paired Comparisons",
+                            withSpinner(plotlyOutput("didson_tower_pairedplot1")),
+                            withSpinner(plotlyOutput("didson_tower_pairedplot2"))
                    ),
                  ), #end of tabset panel
                ),#end of mainpanel

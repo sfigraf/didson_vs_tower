@@ -262,7 +262,7 @@ observeEvent(input$didsoninput1,{
     formula1 <- y ~ x
     rsq1 <- rsq(didson_tower_filtered()$daily_wide$DIDSON, didson_tower_filtered()$daily_wide$Tower)
     
-    plot <- d_t_wide %>%
+    plot <- didson_tower_filtered()$daily_wide %>%
       ggplot(aes(x = DIDSON, y = Tower, text = Date1)) +
       geom_point() +
       geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +

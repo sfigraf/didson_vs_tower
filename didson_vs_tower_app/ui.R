@@ -1,4 +1,5 @@
 ## To do:
+# Daily Rsquared value doesn't show up; 
 # red highlight outliers: try and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
 #plot proxy for outliers and not redrawing plot when filters change?
 # update slider input when datatable is able to render 
@@ -16,7 +17,8 @@ library(shinythemes)
 
 source("functions/didson_wrangle.R")
 source("functions/tower_wrangle.R")
-rsq <- function(x, y) summary(lm(y~x))$r.squared
+source("functions/rsq_function.R")
+#rsq <- function(x, y) summary(lm(y~x))$r.squared
 
 
 

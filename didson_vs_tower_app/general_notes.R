@@ -26,10 +26,16 @@ towers$hourly
 
 
 
-towers_2021_2<- towers_2021 %>%
+Lbanktowers_2021_2<- towers_2021 %>%
+  select(-RBank) %>%
   mutate(date1 = str_sub(Date, 6, -1),
+         # For left bank only, the counts start at 50 minutes for even-numbered hours, and at minute 0 for odd-numbered hours
+         Minute = case_when((Hour %% 2) == 0 ~ 50,
+                            (Hour %% 2) != 0 ~ 0),
          date2 = as.Date(ymd(paste(Year, date1))),
-         date_time = ymd_h(paste(Year, date1, Hour))) 
+         date_time = ymd_hm(paste(Year, date1, Hour, Minute))
+         ) #end of mutate 
+
 
 #Left Bank
 towers_2021_2 %>%
@@ -109,6 +115,49 @@ didson_all_daily_passage2021 <- didson_2021_2 %>%
   mutate(Type = "DIDSON") %>%
   rename(Date1 = `date(date_time)`)
 
+## didson for minute
+didson_2 <- didson_2021 %>%
+  #filter(!is.na(Passage))
+  filter(Minute %in% c(50,0)) %>%
+  mutate(Date1 = ymd(Date),
+         date_time = ymd_hm(paste(Date1, Hour,Minute)),
+         Type = "DIDSON"
+  ) %>%
+  select(date_time, Upstream, Downstream, Passage)
+
+
+# Paired Counts Compare ---------------------------------------------------
+
+paired <- left_join(Lbanktowers_2021_2,didson_2, by = "date_time")
+
+paired2 <- paired %>%
+  filter(Hour >= 4) %>%
+  select(date_time, Passage, LBank)
+
+#plot ready 
+paired3 <- paired2 %>%
+  rename(DIDSON = Passage,
+         Lbank_tower = LBank) %>%
+  pivot_longer(cols = c(DIDSON, Lbank_tower), names_to = "Type", values_to = "passage") %>%
+  filter(!is.na(passage))
+
+#cols = !c(DIDSON, Date, Hour), names_to = "type", values_to = "passage")
+#bar plot
+plot <- paired3 %>%
+  ggplot(aes(x = date_time, y = passage, fill = Type)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  labs(title = "Paired counts compare")
+ggplotly(plot)
+
+# scatter plot
+
+plot <- paired3 %>%
+  ggplot(aes(x = date_time, y = passage, color = Type)) +
+  geom_point() +
+  theme_classic() +
+  labs(title = "Paired counts compare")
+ggplotly(plot)
 
 # daily compare -----------------------------------------------------------
 
@@ -253,17 +302,84 @@ rsq <- function (x, y) cor(x, y) ^ 2
 rsq <- function(x, y) summary(lm(y~x))$r.squared
 
 rsq1 <- rsq(didson_tower_hourly$didson_total_passage, didson_tower_hourly$tower_total_count)
+## outliers stuff
+line_outlier_plot <- function(df, outlier_color = "red", normal_color = "black", drop = FALSE){
+  # Assign a label to show if it is an outlier or not
+  df$label <- ifelse(df$col > mean(df$col) + 3 * sd(df$col) |
+                       df$col < mean(df$col) - 3 * sd(df$col), "Outlier", "Normal")
+  
+  df$label <- factor(df$label, levels = c("Normal", "Outlier"))
+}  
+#uses didson_total_passage to predict tower_total_count
+model1 <- lm(didson_tower_hourly$tower_total_count ~ didson_tower_hourly$didson_total_passage)
+#uses tower_total_count to predict didson_total_passage
+model2 <- lm(didson_tower_hourly$didson_total_passage ~ didson_tower_hourly$tower_total_count)
+
+#vector of predicted tower values given didson values
+x <- data.frame(as.numeric(model1$coefficients[1]) + as.numeric(model1$coefficients[2])*didson_tower_hourly$didson_total_passage)
+colnames(x)[1] <- "didson_total_passage"
+y <- left_join(didson_tower_hourly, x, by = "didson_total_passage")
+
+as.numeric(model1$coefficients[1]) + as.numeric(model1$coefficients[2])*933
+
+
+x2 <- predict.lm(model1, 
+           se.fit = TRUE, level = .95)
+
+#uses didson_total_passage to predict tower_total_count
+model1 <- lm(didson_tower_hourly$tower_total_count ~ didson_tower_hourly$didson_total_passage)
+#uses tower_total_count to predict didson_total_passage
+model2 <- lm(didson_tower_hourly$didson_total_passage ~ didson_tower_hourly$tower_total_count)
+
+#this is the predicted value
+predicted <- function(model, column_entry) {
+  return(as.numeric(model$coefficients[1]) + as.numeric(model$coefficients[2])*column_entry)
+} 
+#gives 
+predicted(model1, 0)
+abs(predicted(model1, 970) - actual) > sd(model1$residuals)*2 ~ "outlier"
+
+#95% of data lie within 2 standard deviations of mean
+sd(model1$residuals)*2
+
+#when tower predicted value is greater than 2 sd's of , and outlier for didson is within 2 sd's
+#problem is that when we reach higher values, the residuals are going to vary more
+#
+plot(model1$residuals)
+didson_tower_hourly11 <- didson_tower_hourly %>%
+  mutate(
+    #resid12 = lm(didson_total_passage~tower_total_count))$residual
+    resid11 = abs(didson_total_passage - predicted(model1, didson_total_passage)) ,
+         )
+
+didson_tower_hourly11 %>%
+  ggplot(aes(x = tower_total_count, y = resid11)) +
+  geom_point()
+
 plot <- didson_tower_hourly %>%
-  ggplot(aes(x = didson_total_passage, y = tower_total_count)) +
+  na.omit() %>%
+  ggplot(aes(x = didson_total_passage, y = tower_total_count, color = case_when(
+    abs( didson_total_passage - predicted(model1, didson_total_passage)) > sd(model1$residuals)*2 #& 
+    #abs(predicted(model2, tower_total_count) - tower_total_count) > sd(model2$residuals)*2 
+    ~ "red",
+      
+      #quantile(tower_total_count, 0.95) & didson_total_passage > quantile(didson_total_passage, .95) ~ "red",
+    
+  )
+  )) +
   geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
   # stat_poly_eq(formula = formula1,
   #              eq.with.lhs = "italic(hat(y))~`=`~",
   #              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
   #              parse = TRUE) +
   geom_point() +
+  # geom_text(aes(label= ifelse(tower_total_count > quantile(tower_total_count, 0.95) & didson_total_passage < quantile(didson_total_passage, .05),
+  #                             as.character(tower_total_count),'')),hjust=0,vjust=0) +
+  
   theme_classic() +
   labs(caption = paste(round(rsq1,2)))
-
+plot
+#library(plotly)
 plot1 <- ggplotly(plot)
 plot2 <- plot1 %>%
   add_annotations(
@@ -280,3 +396,23 @@ plot2
 
 excel_sheets(path = "2021_RM22_DIDSON.xlsx")
 
+library(tidyverse)
+iris %>%
+  ggplot(aes(x = Sepal.Width, y = Sepal.Length)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, formula = "y ~ x", level = .95) +
+  geom_text(aes(label= ifelse(Sepal.Length > quantile(Sepal.Length, 0.95) | Sepal.Length < quantile(Sepal.Length, .05),
+                              as.character(Sepal.Length),'')),hjust=0,vjust=0) 
+  # geom_text(aes(label= ifelse(Sepal.Width > quantile(Sepal.Width, 0.95),
+  #                             as.character(Sepal.Width),'')),hjust=0,vjust=0)
+
+mod <- lm(iris$Sepal.Length ~ iris$Sepal.Width)
+
+
+mod %>%
+  ggplot(aes(x = .fitted, y = .resid)) + 
+  geom_point()
+
+
+ggplot(aes(x = iris$Sepal.Width, y = x1$x.residuals)) +
+  geom_point()

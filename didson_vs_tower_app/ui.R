@@ -1,5 +1,5 @@
 ## To do:
-#"chage comparisons daterange input to slider"
+#
 #play around with bar width on paired plot
 #graph hour on that x axis instread of date_time?
 #update UI so date range changes based on file inputs
@@ -54,7 +54,9 @@ shinyUI(fluidPage(
                     multiple = FALSE,
                     options = pickerOptions(container = "body")
                   ), #end of pickerINput
-                  offset = 0)
+                  offset = 0,
+                  actionButton("sliderupdate_button1", "Render")
+                  )
            ), #end of fluidROw
   
 

@@ -80,3 +80,5 @@ plot2 <- plot1 %>%
   config(mathjax = 'cdn')
 plot2
 
+max(paired2$Date)
+

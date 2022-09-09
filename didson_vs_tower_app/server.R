@@ -22,6 +22,22 @@ observeEvent(input$didsoninput1,{
                       choices = tower_sheets_name()
     )
   }) 
+  slider_events <- reactive({
+    list(input$towerinput1, input$didsoninput1)
+  })
+  observeEvent(input$sliderupdate_button1,{
+    # validate(
+    #   need(!is.null(didson_prepped() ), "Please upload a data set")
+    # )
+    updateSliderInput(session,
+                      "didson_tower_slider2",
+                      min = as.Date(min(tower_didson_prepped()$paired_long$Date) -1),
+                      max = as.Date(max(tower_didson_prepped()$paired_long$Date) +1),
+                      value = c(as.Date(min(tower_didson_prepped()$paired_long$Date) -1),
+                                as.Date(max(tower_didson_prepped()$paired_long$Date) +1)
+                                )
+                      ) # end of updatesliderinput
+  })
   
   # reactive({
   #   validate(

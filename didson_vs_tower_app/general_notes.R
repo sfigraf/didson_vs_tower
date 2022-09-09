@@ -124,6 +124,26 @@ didson_2 <- didson_2021 %>%
          Type = "DIDSON"
   ) %>%
   select(date_time, date2, Passage)
+## hours onyl plot 
+#data is from just paired coutns
+#makes sense to do paired counts because otherwise there is bias going on; 
+#where more sonar files from an hour are read, they will naturally be more
+didson_3 <- didson_2021 %>%
+  mutate(date2 = ymd(Date),
+         date_time = ymd_hm(paste(date2, Hour,Minute))) %>%
+  replace_na(list(Passage =0)) %>%
+  group_by(hour(date_time)) %>%
+  summarise(total_passage = sum(Passage)) %>%
+  rename(hour1 = `hour(date_time)`) %>%
+  mutate(pct = round(prop.table(total_passage),4)*100)
+
+plot <- didson_3 %>%
+  ggplot(aes(x = hour1, y = total_passage, group =1, text = paste0("Percentage of run: ", pct, "%"))) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  labs(title = "Hourly total Counts from DIDSON 2021")
+
+ggplotly(plot)
 
 
 # Paired Counts Compare ---------------------------------------------------

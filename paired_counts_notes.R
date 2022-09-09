@@ -21,7 +21,8 @@ Lbanktowers_2021_2<- towers_2021 %>%
          Minute = case_when((Hour %% 2) == 0 ~ 50,
                             (Hour %% 2) != 0 ~ 0),
          date2 = as.Date(ymd(paste(Year, date1))),
-         date_time = ymd_hm(paste(Year, date1, Hour, Minute))
+         date_time = ymd_hm(paste(Year, date1, Hour, Minute)),
+         date_time_h = ymd_h(paste(date2, Hour))
   ) #end of mutate 
 
 didson_2 <- didson_2021 %>%
@@ -29,15 +30,16 @@ didson_2 <- didson_2021 %>%
   filter(Minute %in% c(50,0)) %>%
   mutate(date2 = ymd(Date),
          date_time = ymd_hm(paste(date2, Hour,Minute)),
+         date_time_h = ymd_h(paste(date2, Hour)),
          Type = "DIDSON"
   ) %>%
-  select(date_time, date2, Passage)
+  select(date_time, date_time_h,date2, Passage)
 
-paired <- left_join(Lbanktowers_2021_2,didson_2, by = c("date_time", "date2"))
+paired <- left_join(Lbanktowers_2021_2,didson_2, by = c("date_time", "date2", "date_time_h"))
 
 paired2 <- paired %>%
   filter(Hour >= 4) %>%
-  select(date_time, date2, Passage, LBank) %>%
+  select(date_time, date_time_h, date2, Passage, LBank) %>%
   rename(DIDSON = Passage,
          Lbank_tower = LBank,
          Date = date2)
@@ -50,7 +52,7 @@ paired3 <- paired2 %>%
 #cols = !c(DIDSON, Date, Hour), names_to = "type", values_to = "passage")
 #bar plot
 plot <- paired3 %>%
-  ggplot(aes(x = date_time, y = passage, fill = Type)) +
+  ggplot(aes(x = date_time_h, y = passage, fill = Type, text = date_time)) +
   geom_bar(stat = "identity" , position = "dodge") +
   theme_classic() +
   labs(title = "Paired counts compare")
@@ -80,5 +82,8 @@ plot2 <- plot1 %>%
   config(mathjax = 'cdn')
 plot2
 
-max(paired2$Date)
+# 
+# df <- data.frame(expand.grid(x = LETTERS[1:3], z = letters[1:3]), y = runif(9))
+# 
+# ggplot(df, aes(x = x, y = y, fill = z)) + geom_bar(width = 0.1) # works
 

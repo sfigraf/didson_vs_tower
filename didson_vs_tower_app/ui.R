@@ -1,9 +1,10 @@
 ## To do:
 #
 #play around with bar width on paired plot
-#graph hour on that x axis instread of date_time?
+#graph hour on that x axis instread of date_time? doesn't work; need to play with this tomorrow
+# need column of hours-only, not minutes 
 #update UI so date range changes based on file inputs
-# cut down stuff that is necessary in app vs uneecessary
+# cut down stuff that is necessary in app vs unnecessary
 # format data from other years to be like 2021 so it's compatible with app
 # red highlight outliers: try  and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
 #plot proxy for outliers and not redrawing plot when filters change?
@@ -25,7 +26,7 @@ source("functions/tower_wrangle.R")
 source("functions/rsq_function.R")
 #rsq <- function(x, y) summary(lm(y~x))$r.squared
 
-
+gc()
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -33,7 +34,7 @@ shinyUI(fluidPage(
   titlePanel("DIDSON and Tower Data"),
   hr(),
   fluidRow(column(width = 2, offset = 0,
-                  fileInput("didsoninput1", "Input DIDSON",accept = c(".xlsx")),
+                  fileInput("didsoninput1", "Input DIDSON",accept = c(".xlsx", ".csv")),
                   pickerInput(
                     inputId = "didson_picker1",
                     label = "Select Sheet:",
@@ -54,8 +55,8 @@ shinyUI(fluidPage(
                     multiple = FALSE,
                     options = pickerOptions(container = "body")
                   ), #end of pickerINput
-                  offset = 0,
-                  actionButton("sliderupdate_button1", "Render")
+                  offset = 0
+                  
                   )
            ), #end of fluidROw
   
@@ -100,7 +101,8 @@ shinyUI(fluidPage(
                            withSpinner(plotlyOutput("didson_dailyplot1")) 
                             ),
                    tabPanel("Hourly",
-                            withSpinner(plotlyOutput("didson_hourlyplot1"))
+                            withSpinner(plotlyOutput("didson_hourlyplot1")),
+                            withSpinner(plotlyOutput("didson_hourlyplot2")),
                             ),
                  ),# end of didson tabset panel
                  
@@ -162,11 +164,12 @@ shinyUI(fluidPage(
                              timeFormat = "%d %b %y",
                              #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
-                 dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
-                                start = "2020-07-25", 
-                                end = Sys.Date()
-                                
-                 ),#end of date range input
+                 actionButton("sliderupdate_button1", "Update Slider"),
+                 # dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
+                 #                start = "2020-07-25", 
+                 #                end = Sys.Date()
+                 #                
+                 # ),#end of date range input
                  
                  sliderInput("didson_tower_slider1", "Hour of Day",
                              min = 0,

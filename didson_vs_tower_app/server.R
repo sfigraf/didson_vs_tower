@@ -22,13 +22,9 @@ observeEvent(input$didsoninput1,{
                       choices = tower_sheets_name()
     )
   }) 
-  slider_events <- reactive({
-    list(input$towerinput1, input$didsoninput1)
-  })
+  
   observeEvent(input$sliderupdate_button1,{
-    # validate(
-    #   need(!is.null(didson_prepped() ), "Please upload a data set")
-    # )
+    
     updateSliderInput(session,
                       "didson_tower_slider2",
                       min = as.Date(min(tower_didson_prepped()$paired_long$Date) -1),
@@ -109,6 +105,9 @@ observeEvent(input$didsoninput1,{
     didson_filtered_list <- list("didson_filtered_daily" = filtered_daily, "didson_filtered_hourly" =  filtered_hourly)
     return(didson_filtered_list)
   })  
+
+# DIDSON Plots ------------------------------------------------------------
+
   
   output$didson_dailyplot1 <- renderPlotly({
     didson_filtered()$didson_filtered_daily %>%
@@ -127,6 +126,27 @@ observeEvent(input$didsoninput1,{
         geom_line() +
         theme_classic() +
         labs(title = "DIDSON Hourly Total Passage")
+  })
+  
+  #this plot isn't controlled by filters
+  output$didson_hourlyplot2 <- renderPlotly({
+    
+    didson_3 <- didson_prepped()$paired_didson %>%
+      # mutate(date2 = ymd(Date),
+      #        date_time = ymd_hm(paste(date2, Hour,Minute))) %>%
+      replace_na(list(Passage =0)) %>%
+      group_by(hour(date_time)) %>%
+      summarise(total_passage = sum(Passage)) %>%
+      rename(hour1 = `hour(date_time)`) %>%
+      mutate(pct = round(prop.table(total_passage),4)*100)
+    
+    plot <- didson_3 %>%
+      ggplot(aes(x = hour1, y = total_passage, group =1, text =  paste0("Percentage of run: ", pct, "%"))) +
+      geom_bar(stat = "identity") +
+      theme_classic() +
+      labs(title = "Hourly total Counts from DIDSON", subtitle = "Data from all read sonar files", caption = "Not controlled by filters on the sidebar. Data is less on some hours because sometimes files aren't read at the XX:50 minute mark, whereas for other hours they often are.")
+    
+    ggplotly(plot)
   })
   
 

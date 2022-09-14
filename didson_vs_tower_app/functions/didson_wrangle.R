@@ -4,7 +4,7 @@ didson_function <- function(didson_data) {
   #has 2021 in variable names but doesn't mean anything in this function
   
   #daily
-  didson_2021_2 <- didson_data %>%
+  didson_2 <- didson_data %>%
     mutate(Date1 = ymd(Date),
            date_time = ymd_hm(paste(Date1, Hour,Minute)),
            Type = "DIDSON"
@@ -20,7 +20,7 @@ didson_function <- function(didson_data) {
   
   
   # dataset ready to be joinged for tower compare and also visualization
-  didson_all_daily_passage2021 <- didson_2021_2 %>%
+  didson_all_daily_passage <- didson_2 %>%
     mutate(Type = "DIDSON") %>%
     rename(Date1 = `date(date_time)`)
   
@@ -48,9 +48,14 @@ didson_function <- function(didson_data) {
     ) %>%
     select(date_time, date2, Passage)
   
-  didson_list <- list("daily" = didson_all_daily_passage2021, "hourly" = didson_hourly1, "paired_didson" = paired_didson)
+  didson_list <- list("daily" = didson_all_daily_passage, "hourly" = didson_hourly1, "paired_didson" = paired_didson)
   return(didson_list)
 }
 
 # x <- didson_function(didson_2021)
- # x$daily
+#  # x$daily
+
+#### Warning: Error in UseMethod: no applicable method for 'filter' applied to an object of class "list"
+#solved because this code was uncommented out
+# x1 <- x %>%
+#   filter()

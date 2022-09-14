@@ -2,6 +2,8 @@
 #all_didson <- read
 
 library(readxl)
+library(tidyverse)
+library(lubridate)
 DIDSON_RM22_2017_2021 <- read_excel("files/DIDSON_RM22_2017-2021.xlsx", 
                                     sheet = "DIDSON Counts", col_types = c("numeric", 
                                                                            "date", "numeric", "numeric", "numeric", 
@@ -25,4 +27,14 @@ write_csv(iso, "DIDSON_2020.csv")
 
 
 ### wrangling 
+
+didson_all <- read_csv("files/DIDSON_RM22_2017-2021.csv")
+
+didson_all_2 <- didson_all %>%
+  mutate(
+    Hour = as.numeric(str_sub(Hour, start = 1, end = 2)),
+    Date = dmy(paste(Date,Year)),
+    #date_time = dmy_hm(paste(Date,Year,new_hr,Minute))
+    )
+
 

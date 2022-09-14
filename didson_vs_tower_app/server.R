@@ -22,7 +22,7 @@ observeEvent(input$didsoninput1,{
                       choices = tower_sheets_name()
     )
   }) 
-  
+  # update tower didson comarison date
   observeEvent(input$sliderupdate_button1,{
     
     updateSliderInput(session,
@@ -35,6 +35,29 @@ observeEvent(input$didsoninput1,{
                       ) # end of updatesliderinput
   })
   
+  observeEvent(input$didsonui_year_button1,{
+    
+    updatePickerInput(session, 
+                      "didson_picker2", 
+                      choices = unique(didson_raw_data()$Year))
+    
+  })
+  
+  
+  observeEvent(input$didson_picker2,{
+    
+    # updatePickerInput(session, 
+    #                   "didson_picker2", 
+    #                   choices = unique(didson_raw_data()$Year))
+    updateSliderInput(session,
+                      "didson_slider2",
+                      min = as.Date(min(didson_prepped()$daily$Date1) -1),
+                      max = as.Date(max(didson_prepped()$daily$Date1) +1),
+                      value = c(as.Date(min(didson_prepped()$daily$Date1) -1),
+                                as.Date(max(didson_prepped()$daily$Date1) +1)
+                      )
+    ) # end of updatesliderinput
+  })
   # reactive({
   #   validate(
   #     need(!is.null(didson_prepped() ), "Please upload a data set")
@@ -49,9 +72,10 @@ observeEvent(input$didsoninput1,{
 
 # DIDSON read-ins -----------------------------------------------------------
 
-  
+  ## Warning: Error in endsWith: non-character object(s)
+  #solved because i was calling input$didsoninput1 for endswith, not input$didsoninput1$name
   didson_sheets_name <- reactive({
-    if (!is.null(input$didsoninput1)) {
+    if (!is.null(input$didsoninput1) && (endsWith(input$didsoninput1$name, ".xlsx"))) {
       return(excel_sheets(path = input$didsoninput1$datapath))  
     } else {
       return(NULL)
@@ -60,7 +84,8 @@ observeEvent(input$didsoninput1,{
   
   didson_raw_data <- reactive({
     if (!is.null(input$didsoninput1) && 
-        (input$didson_picker1 %in% didson_sheets_name())) {
+        (input$didson_picker1 %in% didson_sheets_name()) &&
+      (endsWith(input$didsoninput1$name, ".xlsx"))) {
       data <- read_excel(input$didsoninput1$datapath, 
                          sheet = input$didson_picker1,
                          col_types = c("numeric", 
@@ -72,7 +97,19 @@ observeEvent(input$didsoninput1,{
                          )
       
       return(data)
-    } else {
+    } else if (!is.null(input$didsoninput1) &&
+               (endsWith(input$didsoninput1$name, ".csv"))) {
+      didson_all <- read_csv(input$didsoninput1$datapath)
+      # this is readying the csv file to be put into the didson_clean function
+      didson_all_2 <- didson_all %>%
+        mutate(
+          Hour = as.numeric(str_sub(Hour, start = 1, end = 2)),
+          Date = dmy(paste(Date,Year)),
+          #date_time = dmy_hm(paste(Date,Year,new_hr,Minute))
+        )
+      return(didson_all_2)
+    }
+    else {
       return(NULL)
     }
   })
@@ -85,15 +122,20 @@ observeEvent(input$didsoninput1,{
       need(!is.null(didson_raw_data() ), "Please upload a data set")
     )
     
+    year_filtered <- didson_raw_data() %>%
+      filter(
+        Year == input$didson_picker2
+      )
     
-    didson_list <- list("daily" = didson_function(didson_raw_data())$daily, "hourly" = didson_function(didson_raw_data())$hourly, "paired_didson" =  didson_function(didson_raw_data())$paired_didson)
+    didson_list <- list("daily" = didson_function(year_filtered)$daily, "hourly" = didson_function(year_filtered)$hourly, "paired_didson" =  didson_function(year_filtered)$paired_didson)
     return(didson_list)
   })
   
-  didson_filtered <-reactive({
+  didson_filtered <- reactive({
     filtered_daily <- didson_prepped()$daily %>%
       filter(
-        Date1 >= input$didson_slider2[1] & Date1 <= input$didson_slider2[2],
+        Date1 >= input$didson_slider2[1] & Date1 <= input$didson_slider2[2]
+        
       )
     
     filtered_hourly <- didson_prepped()$hourly %>%

@@ -1,14 +1,17 @@
 ## To do:
-#
+# update PIcker with uploaded year
+#update daterange for didson for correct dates
+
 #play around with bar width on paired plot
-#graph hour on that x axis instread of date_time? doesn't work; need to play with this tomorrow
+#graph hour on that x axis instead of date_time? doesn't work; need to play with this tomorrow
 # need column of hours-only, not minutes 
 #update UI so date range changes based on file inputs
 # cut down stuff that is necessary in app vs unnecessary
 # format data from other years to be like 2021 so it's compatible with app
 # red highlight outliers: try  and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
-#plot proxy for outliers and not redrawing plot when filters change?
+# plot proxy for outliers and not redrawing plot when filters change?
 # update slider input when datatable is able to render 
+# update a change in the interface of the change in the seasons of the way they are to
 
 
 library(shiny)
@@ -82,6 +85,14 @@ shinyUI(fluidPage(
                  #                end = Sys.Date()
                  #                
                  #                ),#end of date range input
+                 pickerInput(
+                   inputId = "didson_picker2",
+                   label = "Select Year:",
+                   choices = NULL,
+                   selected = NULL,
+                   multiple = FALSE,
+                   options = pickerOptions(container = "body")
+                 ), #end of pickerINput
                  
                  sliderInput("didson_slider1", "Hour of Day",
                              min = 0,
@@ -91,6 +102,7 @@ shinyUI(fluidPage(
                              #timeFormat = "%T",
                              #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
+                 actionButton("didsonui_year_button1", "Update Year Options"),
                ), #end of sidebar panel 
               
                

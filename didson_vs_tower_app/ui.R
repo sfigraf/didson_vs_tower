@@ -49,7 +49,7 @@ shinyUI(fluidPage(
                   
                   ),
            column(width = 2,
-                  fileInput("towerinput1", "Input Tower Data",accept = c(".xlsx")),
+                  fileInput("towerinput1", "Input Tower Data",accept = c(".xlsx", ".csv")),
                   pickerInput(
                     inputId = "tower_picker1",
                     label = "Select Sheet:",
@@ -72,19 +72,6 @@ shinyUI(fluidPage(
              
              sidebarLayout(
                sidebarPanel(
-                 sliderInput("didson_slider2", "Date",
-                             min = as.Date("2020-08-01"), 
-                             max = Sys.Date(),  
-                             value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
-                             step = 1,
-                             timeFormat = "%d %b %y",
-                             #animate = animationOptions(interval = 500, loop = FALSE)
-                 ),
-                 # dateRangeInput("didson_drangeinput1", "Select a Date Range:",
-                 #                start = "2020-08-01", 
-                 #                end = Sys.Date()
-                 #                
-                 #                ),#end of date range input
                  pickerInput(
                    inputId = "didson_picker2",
                    label = "Select Year:",
@@ -93,6 +80,16 @@ shinyUI(fluidPage(
                    multiple = FALSE,
                    options = pickerOptions(container = "body")
                  ), #end of pickerINput
+                 actionButton("didsonui_year_button1", "Update Year Options"),
+                 sliderInput("didson_slider2", "Date",
+                             min = as.Date("2020-08-01"), 
+                             max = Sys.Date(),  
+                             value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
+                             step = 1,
+                             timeFormat = "%d %b %y",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
+                 
                  
                  sliderInput("didson_slider1", "Hour of Day",
                              min = 0,
@@ -102,7 +99,7 @@ shinyUI(fluidPage(
                              #timeFormat = "%T",
                              #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
-                 actionButton("didsonui_year_button1", "Update Year Options"),
+                 
                ), #end of sidebar panel 
               
                

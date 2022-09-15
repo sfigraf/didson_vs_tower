@@ -37,4 +37,23 @@ didson_all_2 <- didson_all %>%
     #date_time = dmy_hm(paste(Date,Year,new_hr,Minute))
     )
 
+## TOWERS
+library(readxl)
+library(readr)
+towers_2021 <- read_excel("LACL Tower Escapement 2021.xlsx", 
+                          col_types = c("numeric", "text", "date", 
+                                        "numeric", "numeric", "numeric"))
+
+#has all counts since 2000
+X2019_Newhalen_River_Hourly_counts <- read_csv("files/2019 Newhalen River Hourly counts.csv", 
+                                               #col_types = cols(Year = col_number())
+                                               )
+x <- X2019_Newhalen_River_Hourly_counts %>%
+  select(Year, Location, Date, Hour,  LBank, RBank) %>%
+  mutate(date2 = as.Date(dmy(paste(Date, Year))),
+    date_time = dmy_h(paste(Date, Year, Hour)))
+
+x1 <- tower_function(x)
+
+
 

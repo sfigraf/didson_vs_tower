@@ -194,7 +194,8 @@ observeEvent(input$didsoninput1,{
 
 # Tower upload logic ------------------------------------------------------
   tower_sheets_name <- reactive({
-    if (!is.null(input$towerinput1)) {
+    if (!is.null(input$towerinput1) &&
+      (endsWith(input$towerinput1$name, ".xlsx"))) {
       return(excel_sheets(path = input$towerinput1$datapath))  
     } else {
       return(NULL)
@@ -205,7 +206,9 @@ observeEvent(input$didsoninput1,{
     
     
     if (!is.null(input$towerinput1) && 
-        (input$tower_picker1 %in% tower_sheets_name())) {
+        (input$tower_picker1 %in% tower_sheets_name()) &&
+        (endsWith(input$towerinput1$name, ".xlsx"))
+        ) {
       data <- read_excel(input$towerinput1$datapath, 
                          sheet = input$tower_picker1,
                          col_types = c("numeric", "text", "date", 
@@ -214,7 +217,18 @@ observeEvent(input$didsoninput1,{
       )
       return(data)
 
-    } else {
+    } else if (!is.null(input$towerinput1) &&
+               (endsWith(input$towerinput1$name, ".csv"))) {
+      tower_all <- read_csv(input$towerinput1$datapath)
+      # this is readying the csv file to be put into the tower_clean function
+      tower_all_2 <- tower_all %>%
+        select(Year, Location, Date, Hour,  LBank, RBank) %>%
+        mutate(date2 = as.Date(dmy(paste(Date, Year))),
+               date_time = dmy_h(paste(Date, Year, Hour)))
+      return(tower_all_2)
+    }
+    
+    else {
       return(NULL)
     }
   })

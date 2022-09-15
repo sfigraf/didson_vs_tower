@@ -54,6 +54,6 @@ x <- X2019_Newhalen_River_Hourly_counts %>%
     date_time = dmy_h(paste(Date, Year, Hour)))
 
 x1 <- tower_function(x)
-
+x1$daily$Date1
 
 

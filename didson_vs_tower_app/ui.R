@@ -1,6 +1,9 @@
 ## To do:
-# update PIcker with uploaded year
-#update daterange for didson for correct dates
+# 0 non NA cases error thrown when years or dates don't match up
+# change comparison graphs to line plot 
+# hours-only plot for towers
+# incorporate qualitative weather
+
 
 #play around with bar width on paired plot
 #graph hour on that x axis instead of date_time? doesn't work; need to play with this tomorrow
@@ -46,8 +49,17 @@ shinyUI(fluidPage(
                     multiple = FALSE,
                     options = pickerOptions(container = "body") #makes it so picker dropdown isn't behind navbar
                   ), #end of pickerINput
+                  pickerInput(
+                    inputId = "didson_picker2",
+                    label = "Select Year:",
+                    choices = NULL,
+                    selected = NULL,
+                    multiple = FALSE,
+                    options = pickerOptions(container = "body")
+                  ), #end of pickerINput
+                  actionButton("didsonui_year_button1", "Update Year Options"),
                   
-                  ),
+                  ), #end of didson input column
            column(width = 2,
                   fileInput("towerinput1", "Input Tower Data",accept = c(".xlsx", ".csv")),
                   pickerInput(
@@ -58,10 +70,22 @@ shinyUI(fluidPage(
                     multiple = FALSE,
                     options = pickerOptions(container = "body")
                   ), #end of pickerINput
+                  
+                  pickerInput(
+                    inputId = "tower_picker2",
+                    label = "Select Year:",
+                    choices = NULL,
+                    selected = NULL,
+                    multiple = FALSE,
+                    options = pickerOptions(container = "body")
+                  ), #end of pickerINput
+                  actionButton("towerui_year_button1", "Update Year Options"),
                   offset = 0
                   
-                  )
+                  ) #end of tower column
            ), #end of fluidROw
+  
+  hr(),
   
 
 # DIDSON UI ---------------------------------------------------------------
@@ -72,15 +96,7 @@ shinyUI(fluidPage(
              
              sidebarLayout(
                sidebarPanel(
-                 pickerInput(
-                   inputId = "didson_picker2",
-                   label = "Select Year:",
-                   choices = NULL,
-                   selected = NULL,
-                   multiple = FALSE,
-                   options = pickerOptions(container = "body")
-                 ), #end of pickerINput
-                 actionButton("didsonui_year_button1", "Update Year Options"),
+                 
                  sliderInput("didson_slider2", "Date",
                              min = as.Date("2020-08-01"), 
                              max = Sys.Date(),  
@@ -127,11 +143,21 @@ shinyUI(fluidPage(
     tabPanel("Tower Count Data",
              sidebarLayout(
                sidebarPanel(
-                 dateRangeInput("tower_drangeinput1", "Select a Date Range:",
-                                start = "2020-08-01", 
-                                end = Sys.Date()
-                                
-                 ),#end of date range input
+                 
+                 
+                 sliderInput("tower_slider2", "Date",
+                             min = as.Date("2020-08-01"), 
+                             max = Sys.Date(),  
+                             value = c(as.Date("2021-04-15"), as.Date("2021-09-01")),
+                             step = 1,
+                             timeFormat = "%d %b %y",
+                             #animate = animationOptions(interval = 500, loop = FALSE)
+                 ),
+                 # dateRangeInput("tower_drangeinput1", "Select a Date Range:",
+                 #                start = "2020-08-01", 
+                 #                end = Sys.Date()
+                 #                
+                 # ),#end of date range input
                  
                  sliderInput("tower_slider1", "Hour of Day",
                              min = 0,

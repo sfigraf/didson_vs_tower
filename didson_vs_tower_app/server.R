@@ -35,6 +35,7 @@ observeEvent(input$didsoninput1,{
                       ) # end of updatesliderinput
   })
   
+  # DIDSON Year/date update
   observeEvent(input$didsonui_year_button1,{
     
     updatePickerInput(session, 
@@ -58,17 +59,31 @@ observeEvent(input$didsoninput1,{
                       )
     ) # end of updatesliderinput
   })
-  # reactive({
-  #   validate(
-  #     need(!is.null(didson_prepped() ), "Please upload a data set")
-  #   )
-  #   updateSliderInput(session, "didson_slider2",
-  #                     min = #as.Date("2001-04-15"),
-  #                       min(didson_prepped()$daily$Date1-1),
-  #                     max = max(didson_prepped()$daily$Date1+1),
-  #                     value = c(min(didson_prepped()$daily$Date1 -1),max(didson_prepped()$daily$Date1 +1))
-  #   )
-  # })
+  
+  # TOWER Year/date update
+  observeEvent(input$towerui_year_button1,{
+    
+    updatePickerInput(session, 
+                      "tower_picker2", 
+                      choices = unique(tower_raw_data()$Year))
+    
+  })
+  
+  
+  observeEvent(input$tower_picker2,{
+    
+    # updatePickerInput(session, 
+    #                   "tower_picker2", 
+    #                   choices = unique(tower_raw_data()$Year))
+    updateSliderInput(session,
+                      "tower_slider2",
+                      min = as.Date(min(tower_prepped()$daily$Date1) -1),
+                      max = as.Date(max(tower_prepped()$daily$Date1) +1),
+                      value = c(as.Date(min(tower_prepped()$daily$Date1) -1),
+                                as.Date(max(tower_prepped()$daily$Date1) +1)
+                      )
+    ) # end of updatesliderinput
+  })
 
 # DIDSON read-ins -----------------------------------------------------------
 
@@ -237,8 +252,13 @@ observeEvent(input$didsoninput1,{
     validate(
       need(!is.null(tower_raw_data() ), "Please upload a data set")
     )
+    
+    year_filtered <- tower_raw_data() %>%
+      filter(
+        Year == input$tower_picker2
+      )
     ####THIS Seems unnecesary to me....clean it up!
-    tower_list <- list("daily" = tower_function(tower_raw_data())$daily, "hourly" = tower_function(tower_raw_data())$hourly, "hourly_condensed" = tower_function(tower_raw_data())$hourly_condensed, "paired_towers" =  tower_function(tower_raw_data())$paired_towers )
+    tower_list <- list("daily" = tower_function(year_filtered)$daily, "hourly" = tower_function(year_filtered)$hourly, "hourly_condensed" = tower_function(year_filtered)$hourly_condensed, "paired_towers" =  tower_function(year_filtered)$paired_towers )
     return(tower_list)
   })
   
@@ -248,12 +268,12 @@ observeEvent(input$didsoninput1,{
   tower_filtered <- reactive({
     filtered_daily <- tower_prepped()$daily %>%
       filter(
-        Date1 >= input$tower_drangeinput1[1] & Date1 <= input$tower_drangeinput1[2],
+        Date1 >= input$tower_slider2[1] & Date1 <= input$tower_slider2[2],
       )
     
     filtered_hourly <- tower_prepped()$hourly %>%
       filter(
-        date2 >= input$tower_drangeinput1[1] & date2 <= input$tower_drangeinput1[2],
+        date2 >= input$tower_slider2[1] & date2 <= input$tower_slider2[2],
         hour(date_time) >= input$tower_slider1[1] & hour(date_time) <= input$tower_slider1[2],
       )
     

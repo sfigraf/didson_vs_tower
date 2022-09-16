@@ -20,8 +20,8 @@ tower_function <- function(tower_data) {
   ###both banks plot
   toweres_collapsed <- towers_2021_2 %>%
     na.omit() %>%
-    select(date_time, date2, LBank, RBank) %>%
-    gather(key = "Bank", value = "Count", -c(date_time, date2))
+    select(date_time, date2, LBank, RBank, Sky, Wind, Precip, Turbidity) %>%
+    gather(key = "Bank", value = "Count", -c(date_time, date2,Sky, Wind, Precip, Turbidity))
   
   
   #ggplotly(plot)
@@ -66,4 +66,4 @@ tower_function <- function(tower_data) {
 
 
 # tower_data <- x %>%
-#   filter(Year == 2000)
+#   filter(Year == 2021)

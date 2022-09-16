@@ -23,8 +23,8 @@ observeEvent(input$didsoninput1,{
     )
   }) 
   # update tower didson comarison date
-  observeEvent(input$sliderupdate_button1,{
-    
+  observeEvent(input$sliderupdate_button1 ,{
+    #|| 
     updateSliderInput(session,
                       "didson_tower_slider2",
                       min = as.Date(min(tower_didson_prepped()$paired_long$Date) -1),
@@ -40,7 +40,7 @@ observeEvent(input$didsoninput1,{
     
     updatePickerInput(session, 
                       "didson_picker2", 
-                      choices = unique(didson_raw_data()$Year))
+                      choices = sort(unique(didson_raw_data()$Year)))
     
   })
   
@@ -65,7 +65,7 @@ observeEvent(input$didsoninput1,{
     
     updatePickerInput(session, 
                       "tower_picker2", 
-                      choices = unique(tower_raw_data()$Year))
+                      choices = sort(unique(tower_raw_data()$Year)))
     
   })
   
@@ -237,7 +237,7 @@ observeEvent(input$didsoninput1,{
       tower_all <- read_csv(input$towerinput1$datapath)
       # this is readying the csv file to be put into the tower_clean function
       tower_all_2 <- tower_all %>%
-        select(Year, Location, Date, Hour,  LBank, RBank) %>%
+        select(Year, Location, Date, Hour,  LBank, RBank, Sky, Wind, Precip, Turbidity) %>%
         mutate(date2 = as.Date(dmy(paste(Date, Year))),
                date_time = dmy_h(paste(Date, Year, Hour)))
       return(tower_all_2)
@@ -323,7 +323,7 @@ observeEvent(input$didsoninput1,{
     
     paired2 <- paired %>%
       filter(Hour >= 4) %>%
-      select(date_time, date2, Passage, LBank) %>%
+      select(date_time, date2, Passage, LBank, Sky, Wind, Precip, Turbidity) %>%
       rename(DIDSON = Passage,
              Lbank_tower = LBank,
              Date = date2) 
@@ -470,7 +470,11 @@ observeEvent(input$didsoninput1,{
   #### paired plots
   output$didson_tower_pairedplot1 <- renderPlotly({
     plot <- didson_tower_filtered()$paired_long %>%
-      ggplot(aes(x = date_time, y = passage, fill = Type)) +
+      ggplot(aes(x = date_time, y = passage, fill = Type, text = paste("Sky:", Sky,
+                                                                       "Wind:", Wind,
+                                                                       "Precip:", Precip,
+                                                                       "Turbidity:", Turbidity)
+                 )) +
       geom_bar(stat = "identity", 
                position = "dodge"
                #width = 1
@@ -486,7 +490,13 @@ observeEvent(input$didsoninput1,{
     rsq1 <- rsq(didson_tower_filtered()$paired_wide$DIDSON, didson_tower_filtered()$paired_wide$Lbank_tower)
     
     plot <- didson_tower_filtered()$paired_wide %>%
-      ggplot(aes(x = DIDSON, y = Lbank_tower, text = date_time)) +
+      ggplot(aes(x = DIDSON, y = Lbank_tower, 
+                 text = c(paste("DateTime:", date_time,
+                                                           "Sky:", Sky,
+                                                           "Wind:", Wind,
+                                                           "Precip:", Precip,
+                                                           "Turbidity:", Turbidity))
+                 )) +
       geom_point() +
       geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
       theme_classic() +
@@ -504,6 +514,77 @@ observeEvent(input$didsoninput1,{
       #this ensures the TeX is read/displayed how I want it
       config(mathjax = 'cdn')
     plot2
+  })
+
+# Weather Upload Logic ----------------------------------------------------
+
+  weather_data <- reactive({
+    if (!is.null(input$weatherinput1) && 
+        
+        (endsWith(input$weatherinput1$name, ".csv"))) {
+      data <- read_csv(input$weatherinput1$datapath, 
+                         
+                         col_types = cols(`Precip (in)` = col_number(), 
+                                          `Water Temp (C)` = col_number(), 
+                                          `Corrected RM 22` = col_number(), 
+                                          `Flow (cfs)` = col_number(), ...10 = col_skip(), 
+                                          Turbidity...11 = col_skip())
+                         
+      )
+       #getting date to a format usable for plots
+      data2 <- data %>%
+        drop_na(Date) %>%
+        mutate(Date = mdy(Date))
+      
+      return(data2)
+    } 
+    else {
+      return(NULL)
+    }
+  })
+
+# Weather Reactivity ------------------------------------------------------
+
+  
+
+# Weather Plots and Table -----------------------------------------------------------
+
+  output$water_temp_plot <- renderPlotly({
+    plot <- weather_data() %>%
+      ggplot(aes(x = Date, y = `Water Temp (C)`, group = 1)) +
+      geom_line() +
+      theme_classic() + 
+      labs(title = "River Mile Water Temp")
+    ggplotly(plot)
+  })
+  output$precip_plot <- renderPlotly({
+    plot <- weather_data() %>%
+      ggplot(aes(x = Date, y = `Precip (in)`)) +
+      geom_bar(stat = "identity") +
+      theme_classic() + 
+      labs(title = "River Mile Precip")
+    ggplotly(plot)
+  })
+  output$air_temp_plot <- renderPlotly({
+    plot <- weather_data() %>%
+      ggplot(aes(x = Date, y = `Air Temp (F)`, group = 1)) +
+      geom_line() +
+      theme_classic()+ 
+      labs(title = "River Mile Air Temp")
+    ggplotly(plot)
+  })
+  output$water_level_plot <- renderPlotly({
+    plot <- weather_data() %>%
+      ggplot(aes(x = Date, y = `Water Level (RM22)`, group = 1)) +
+      geom_line() +
+      theme_classic() + 
+      labs(title = "River Mile Water Level")
+    ggplotly(plot)
+  })
+  
+  output$weather_datatable <- renderDT({
+    #req(input_file())
+    datatable(weather_data())
   })
   
 

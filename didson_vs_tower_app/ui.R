@@ -1,8 +1,9 @@
 ## To do:
 # 0 non NA cases error thrown when years or dates don't match up
-# change comparison graphs to line plot 
+# change comparison graphs to line plot with gaps in data?
 # hours-only plot for towers
-# incorporate qualitative weather
+# 
+# new lines for Sky, precip, etc on trace in ggplotly paired plot
 
 
 #play around with bar width on paired plot
@@ -26,6 +27,7 @@ library(readxl)
 library(shinycssloaders)
 library(shinyWidgets) # for pickerinput
 library(shinythemes)
+library(DT)
 
 source("functions/didson_wrangle.R")
 source("functions/tower_wrangle.R")
@@ -82,9 +84,25 @@ shinyUI(fluidPage(
                   actionButton("towerui_year_button1", "Update Year Options"),
                   offset = 0
                   
-                  ) #end of tower column
-           ), #end of fluidROw
+                  ), #end of tower column
+           
   
+              column(width = 2,
+                     fileInput("weatherinput1", "Input weather Data",accept = c(".xlsx", ".csv")),
+                     # pickerInput(
+                     #   inputId = "weather_picker2",
+                     #   label = "Select Year:",
+                     #   choices = NULL,
+                     #   selected = NULL,
+                     #   multiple = FALSE,
+                     #   options = pickerOptions(container = "body")
+                     # ), #end of pickerINput
+                     # actionButton("weatherui_year_button1", "Update Year Options"),
+                     offset = 0
+                     
+              ), #end of weather column
+  
+  ), #end of fluidROw
   hr(),
   
 
@@ -199,7 +217,7 @@ shinyUI(fluidPage(
                              timeFormat = "%d %b %y",
                              #animate = animationOptions(interval = 500, loop = FALSE)
                  ),
-                 actionButton("sliderupdate_button1", "Update Slider"),
+                 actionButton("sliderupdate_button1", "Update Slider and Render Data"),
                  # dateRangeInput("didson_tower_drangeinput1", "Select a Date Range:",
                  #                start = "2020-07-25", 
                  #                end = Sys.Date()
@@ -234,6 +252,24 @@ shinyUI(fluidPage(
              ),# end of sidebar layout
              
              ), #end of comparisons tabpanel
+
+# Weather -----------------------------------------------------------------
+tabPanel("Weather", 
+         column(width = 6,
+                withSpinner(plotlyOutput("water_temp_plot")),
+                withSpinner(plotlyOutput("precip_plot"))
+         ),
+         column(width = 6,
+                withSpinner(plotlyOutput("air_temp_plot")),
+                withSpinner(plotlyOutput("water_level_plot"))
+        ), 
+        column(width = 12,
+               withSpinner(DT::dataTableOutput("weather_datatable"))
+               )
+        
+         
+         )# end of weather panel
+
   ), #end of navbar page
 
     # Application title

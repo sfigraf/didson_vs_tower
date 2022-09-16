@@ -152,7 +152,7 @@ paired <- left_join(Lbanktowers_2021_2,didson_2, by = c("date_time", "date2"))
 
 paired2 <- paired %>%
   filter(Hour >= 4) %>%
-  select(date_time, date2, Passage, LBank) %>%
+  select(date_time, date2, Passage, LBank, Sky, Wind, Precip, Turbidity) %>%
   rename(DIDSON = Passage,
          Lbank_tower = LBank,
          Date = date2)
@@ -163,10 +163,15 @@ paired3 <- paired2 %>%
   filter(!is.na(passage))
 
 #cols = !c(DIDSON, Date, Hour), names_to = "type", values_to = "passage")
-#bar plot
+#line plot
 plot <- paired3 %>%
-  ggplot(aes(x = date_time, y = passage, fill = Type)) +
-  geom_bar(stat = "identity") +
+  ggplot(aes(x = date_time, y = passage, color = Type, text = paste("Sky:", Sky,
+                                                                    "Wind:", Wind,
+                                                                    "Precip:", Precip,
+                                                                    "Turbidity:", Turbidity)
+             )) +
+  geom_line()+
+  #geom_bar(stat = "identity") +
   theme_classic() +
   labs(title = "Paired counts compare")
 ggplotly(plot)
@@ -174,7 +179,11 @@ ggplotly(plot)
 # scatter plot
 
 plot <- paired3 %>%
-  ggplot(aes(x = date_time, y = passage, color = Type)) +
+  ggplot(aes(x = date_time, y = passage, color = Type,text = paste("Sky:", Sky,
+                                                                   "Wind:", Wind,
+                                                                   "Precip:", Precip,
+                                                                   "Turbidity:", Turbidity)
+             )) +
   geom_point() +
   theme_classic() +
   labs(title = "Paired counts compare")
@@ -437,3 +446,42 @@ mod %>%
 
 ggplot(aes(x = iris$Sepal.Width, y = x1$x.residuals)) +
   geom_point()
+
+
+# weather input -----------------------------------------------------------
+
+
+library(readr)
+weather_2017 <- read_csv("files/weather_2017.csv", 
+                         col_types = cols(`Precip (in)` = col_number(), 
+                                          `Water Temp (C)` = col_number(), 
+                                          `Corrected RM 22` = col_number(), 
+                                          `Flow (cfs)` = col_number(), ...10 = col_skip(), 
+                                          Turbidity...11 = col_skip()))
+weather_2017_2 <- weather_2017 %>%
+  drop_na(Date) %>%
+  mutate(Date = mdy(Date))
+
+#water temp
+weather_2017 %>%
+  ggplot(aes(x = Date, y = `Water Temp (C)`, group = 1)) +
+  geom_line() +
+  theme_classic()
+  
+# air tempt
+weather_2017 %>%
+  ggplot(aes(x = Date, y = `Air Temp (F)`, group = 1)) +
+  geom_line() +
+  theme_classic()
+
+weather_2017 %>%
+  ggplot(aes(x = Date, y = `Water Level (RM22)`, group = 1)) +
+  geom_line() +
+  theme_classic()
+
+weather_2017 %>%
+  ggplot(aes(x = Date, y = `Precip (in)`)) +
+  geom_bar(stat = "identity") +
+  theme_classic()
+
+

@@ -4,6 +4,9 @@ library(plotly)
 towers_2021 <- read_excel("LACL Tower Escapement 2021.xlsx", 
                           col_types = c("numeric", "text", "date", 
                                         "numeric", "numeric", "numeric"))
+towers_2021 <- read_csv("files/2022 Newhalen River Master Hourly counts.csv", 
+                                               #col_types = cols(Year = col_number())
+)
 didson_2021 <- read_excel("2021_RM22_DIDSON.xlsx", 
                           sheet = "Counts", col_types = c("numeric", 
                                                           "date", "numeric", "numeric", "numeric", 
@@ -188,6 +191,37 @@ plot <- paired3 %>%
   theme_classic() +
   labs(title = "Paired counts compare")
 ggplotly(plot)
+
+## with annotations
+formula1 <- y ~ x
+
+rsq1 <- rsq(didson_tower_filtered()$paired_wide$DIDSON, didson_tower_filtered()$paired_wide$Lbank_tower)
+
+plot <- didson_tower_filtered()$paired_wide %>%
+  ggplot(aes(x = DIDSON, y = Lbank_tower, 
+             text = c(paste("DateTime:", date_time,
+                            "Sky:", Sky,
+                            "Wind:", Wind,
+                            "Precip:", Precip,
+                            "Turbidity:", Turbidity))
+  )) +
+  geom_point() +
+  geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
+  theme_classic() +
+  labs(title = "Paired counts compare")
+#turns to plotly object so i can add annotations
+plot1 <- ggplotly(plot)
+plot2 <- plot1 %>%
+  add_annotations(
+    #positioning on the graph
+    x = max(plot1$x$layout$xaxis$range)*.1,
+    y = max(plot1$x$layout$yaxis$range)*.9,
+    text = paste("R^2 =",round(rsq1,2)),
+    showarrow = F
+  ) %>% 
+  #this ensures the TeX is read/displayed how I want it
+  config(mathjax = 'cdn')
+plot2
 
 # daily compare -----------------------------------------------------------
 

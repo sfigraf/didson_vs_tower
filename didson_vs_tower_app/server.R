@@ -22,7 +22,7 @@ observeEvent(input$didsoninput1,{
                       choices = tower_sheets_name()
     )
   }) 
-  # update tower didson comarison date
+  # update tower didson comparison date
   observeEvent(input$sliderupdate_button1 ,{
     #|| 
     updateSliderInput(session,
@@ -236,6 +236,7 @@ observeEvent(input$didsoninput1,{
                (endsWith(input$towerinput1$name, ".csv"))) {
       tower_all <- read_csv(input$towerinput1$datapath)
       # this is readying the csv file to be put into the tower_clean function
+      # tower_all <- towers_2021
       tower_all_2 <- tower_all %>%
         select(Year, Location, Date, Hour,  LBank, RBank, Sky, Wind, Precip, Turbidity) %>%
         mutate(date2 = as.Date(dmy(paste(Date, Year))),
@@ -307,6 +308,7 @@ observeEvent(input$didsoninput1,{
 # Comparison Logic --------------------------------------------------------
 
   tower_didson_prepped <- reactive({
+    # req(c(input$didson_picker2, input$tower_picker2))
     validate(
       need(!is.null(tower_raw_data()) & !is.null(didson_raw_data() ), "Please upload both data sets")
     )
@@ -395,6 +397,7 @@ observeEvent(input$didsoninput1,{
 
   
   output$didson_tower_dailyplot1 <- renderPlotly({
+    # req(c(input$didson_picker2, input$tower_picker2))
     didson_tower_filtered()$daily_long %>%
       ggplot(aes(x = Date2, y = daily_passage, color = Type)) +
       geom_line() +
@@ -404,6 +407,7 @@ observeEvent(input$didsoninput1,{
     
   })
   output$didson_tower_dailyplot2 <- renderPlotly({
+    # req(c(input$didson_picker2, input$tower_picker2))
     
     formula1 <- y ~ x
     rsq1 <- rsq(didson_tower_filtered()$daily_wide$DIDSON, didson_tower_filtered()$daily_wide$Tower)
@@ -432,7 +436,7 @@ observeEvent(input$didsoninput1,{
   
   
   output$didson_tower_hourlyplot1 <- renderPlotly({
-
+    # req(c(input$didson_picker2, input$tower_picker2))
     didson_tower_filtered()$hourly_long %>%
       ggplot(aes(x = date_time, y = passage, color = type)) +
       geom_line() +
@@ -441,7 +445,7 @@ observeEvent(input$didsoninput1,{
   })
   
   output$didson_tower_hourlyplot2 <- renderPlotly({
-    
+    # req(c(input$didson_picker2, input$tower_picker2))
     formula1 <- y ~ x
     rsq1 <- rsq(didson_tower_filtered()$hourly_wide$didson_total_passage, didson_tower_filtered()$hourly_wide$tower_total_count)
     
@@ -469,6 +473,7 @@ observeEvent(input$didsoninput1,{
   
   #### paired plots
   output$didson_tower_pairedplot1 <- renderPlotly({
+    # req(c(input$didson_picker2, input$tower_picker2))
     plot <- didson_tower_filtered()$paired_long %>%
       ggplot(aes(x = date_time, y = passage, fill = Type, text = paste("Sky:", Sky,
                                                                        "Wind:", Wind,
@@ -485,17 +490,20 @@ observeEvent(input$didsoninput1,{
   })
   
   output$didson_tower_pairedplot2 <- renderPlotly({
+    
     formula1 <- y ~ x
     
     rsq1 <- rsq(didson_tower_filtered()$paired_wide$DIDSON, didson_tower_filtered()$paired_wide$Lbank_tower)
     
     plot <- didson_tower_filtered()$paired_wide %>%
       ggplot(aes(x = DIDSON, y = Lbank_tower, 
-                 text = c(paste("DateTime:", date_time,
-                                                           "Sky:", Sky,
-                                                           "Wind:", Wind,
-                                                           "Precip:", Precip,
-                                                           "Turbidity:", Turbidity))
+                 # lm line shows up/works if I just list one column here... not sure why it doesn't work with multiple 
+                 # paste("DateTime:", date_time,
+                 #       "Sky:", Sky,
+                 #       "Wind:", Wind,
+                 #       "Precip:", Precip,
+                 #       "Turbidity:", Turbidity)
+                 text = date_time
                  )) +
       geom_point() +
       geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +

@@ -9,9 +9,8 @@
 #play around with bar width on paired plot
 #graph hour on that x axis instead of date_time? doesn't work; need to play with this tomorrow
 # need column of hours-only, not minutes 
-#update UI so date range changes based on file inputs
 # cut down stuff that is necessary in app vs unnecessary
-# format data from other years to be like 2021 so it's compatible with app
+
 # red highlight outliers: try  and use modeling basics chapter https://r4ds.had.co.nz/model-basics.html
 # plot proxy for outliers and not redrawing plot when filters change?
 # update slider input when datatable is able to render 

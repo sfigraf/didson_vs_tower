@@ -4,15 +4,20 @@ library(plotly)
 towers_2021 <- read_excel("LACL Tower Escapement 2021.xlsx", 
                           col_types = c("numeric", "text", "date", 
                                         "numeric", "numeric", "numeric"))
-towers_2021 <- read_csv("files/2022 Newhalen River Master Hourly counts.csv", 
-                                               #col_types = cols(Year = col_number())
-)
+towers_2021 <- read_csv("files/2022 Newhalen River Master Hourly counts.csv") %>%
+  select(Year, Location, Date, Hour,  LBank, RBank, Sky, Wind, Precip, Turbidity) %>%
+  mutate(date2 = as.Date(dmy(paste(Date, Year))),
+         date_time = dmy_h(paste(Date, Year, Hour)))
+
+
 didson_2021 <- read_excel("2021_RM22_DIDSON.xlsx", 
                           sheet = "Counts", col_types = c("numeric", 
                                                           "date", "numeric", "numeric", "numeric", 
                                                           "numeric", "numeric", "numeric", 
                                                           "text", "text", "numeric", "numeric", 
                                                           "numeric"))
+
+didson_2021 <- read_csv("files/DIDSON_RM22_2017-2021.csv", col_types = c("c","n"))
 
 towers <- tower_function(towers_2021)
 didson <- didson_function(didson_2021)
@@ -122,7 +127,8 @@ didson_all_daily_passage2021 <- didson_2021_2 %>%
 didson_2 <- didson_2021 %>%
   #filter(!is.na(Passage))
   filter(Minute %in% c(50,0)) %>%
-  mutate(date2 = ymd(Date),
+  mutate(
+    #date2 = ymd(Date),
          date_time = ymd_hm(paste(date2, Hour,Minute)),
          Type = "DIDSON"
   ) %>%
@@ -150,6 +156,7 @@ ggplotly(plot)
 
 
 # Paired Counts Compare ---------------------------------------------------
+
 
 paired <- left_join(Lbanktowers_2021_2,didson_2, by = c("date_time", "date2"))
 

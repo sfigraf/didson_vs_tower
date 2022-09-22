@@ -1,3 +1,4 @@
+
 ## To do:
 # 0 non NA cases error thrown when years or dates don't match up
 # change comparison graphs to line plot with gaps in data?
@@ -15,7 +16,6 @@
 # plot proxy for outliers and not redrawing plot when filters change?
 # update slider input when datatable is able to render 
 # update a change in the interface of the change in the seasons of the way they are to
-
 
 library(shiny)
 library(tidyverse)

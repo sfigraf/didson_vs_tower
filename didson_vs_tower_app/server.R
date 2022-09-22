@@ -310,7 +310,7 @@ observeEvent(input$didsoninput1,{
   tower_didson_prepped <- reactive({
     # req(c(input$didson_picker2, input$tower_picker2))
     validate(
-      need(!is.null(tower_raw_data()) & !is.null(didson_raw_data() ), "Please upload both data sets")
+      need(!is.null(tower_raw_data()) & !is.null(didson_raw_data() ), "Please upload both data sets and select the same year")
     )
     #daily
     didson_tower_daily <- bind_rows(tower_prepped()$daily, didson_prepped()$daily )
@@ -496,16 +496,14 @@ observeEvent(input$didsoninput1,{
     rsq1 <- rsq(didson_tower_filtered()$paired_wide$DIDSON, didson_tower_filtered()$paired_wide$Lbank_tower)
     
     plot <- didson_tower_filtered()$paired_wide %>%
-      ggplot(aes(x = DIDSON, y = Lbank_tower, 
-                 # lm line shows up/works if I just list one column here... not sure why it doesn't work with multiple 
-                 # paste("DateTime:", date_time,
-                 #       "Sky:", Sky,
-                 #       "Wind:", Wind,
-                 #       "Precip:", Precip,
-                 #       "Turbidity:", Turbidity)
-                 text = date_time
-                 )) +
-      geom_point() +
+      mutate(text_line = paste("DateTime:", date_time,
+                                                "Sky:", Sky,
+                                                "Wind:", Wind,
+                                                "Precip:", Precip,
+                                                "Turbidity:", Turbidity)) %>%
+      ggplot(aes(x = DIDSON, y = Lbank_tower)) +
+      ### NO IDEA WHY but for more than just "date_time to show up, I need to have the text argument in the geom_point() spot
+      geom_point(aes(text = text_line)) +
       geom_smooth(method = "lm", se=FALSE, color="black", formula = formula1) +
       theme_classic() +
       labs(title = "Paired counts compare")
